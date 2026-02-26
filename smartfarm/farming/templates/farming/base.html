@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Farming Solutions{% endblock %}</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ── CSS VARIABLES ── */
+        :root {
+            --green-deep: #1a3a2a;
+            --green-mid: #2d6a4f;
+            --green-bright: #40916c;
+            --green-light: #74c69d;
+            --gold: #d4a017;
+            --gold-light: #f4c842;
+            --cream: #faf7f0;
+            --white: #ffffff;
+            --text-dark: #1a2018;
+            --shadow: 0 8px 32px rgba(26,58,42,0.15);
+            --shadow-lg: 0 20px 60px rgba(26,58,42,0.2);
+            --wildlife: #c44b4b;
+            --pest: #c47a1a;
+            --weed: #3a7a3a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ── OFFLINE BANNER ── */
+        #offlineBanner {
+            display: none;
+            background: #f97316; color: white;
+            text-align: center; padding: 8px;
+            font-size: 0.82rem; font-weight: 600;
+        }
+        #offlineBanner.show { display: block; }
+
+        /* ── ACCESSIBILITY / TRANSLATE BAR ── */
+        #translateBar {
+            background: #0a2016;
+            padding: 5px 1.5rem;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap; gap: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .lang-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.75);
+            padding: 3px 10px; border-radius: 10px;
+            font-size: 0.72rem; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+        .lang-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+        .lang-btn.active { background: #40916c; border-color: #40916c; color: white; font-weight: 600; }
+        .acc-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.75);
+            padding: 3px 9px; border-radius: 6px;
+            font-size: 0.72rem; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .acc-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+        .voice-active { background: rgba(239,68,68,0.3) !important; color: #fca5a5 !important; }
+
+        /* ── NAV ── */
+        nav {
+            background: var(--green-deep);
+            padding: 0 2rem;
+            position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+        .nav-inner {
+            max-width: 1300px; margin: 0 auto;
+            display: flex; align-items: center;
+            justify-content: space-between; height: 70px;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--green-bright), var(--gold));
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; font-size: 22px;
+        }
+        .logo-text { font-family: 'Playfair Display', serif; color: white; font-size: 1.1rem; line-height: 1.2; }
+        .logo-text span { display: block; font-size: 0.65rem; font-family: 'DM Sans', sans-serif; color: var(--green-light); font-weight: 300; letter-spacing: 0.05em; }
+        .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+        .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 7px 11px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+        .nav-links a:hover { background: rgba(255,255,255,0.12); color: white; }
+        .nav-cta { background: var(--gold) !important; color: var(--green-deep) !important; font-weight: 600 !important; }
+        .nav-cta:hover { background: var(--gold-light) !important; }
+        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; }
+        .hamburger span { width: 24px; height: 2px; background: white; border-radius: 2px; }
+
+        /* Dropdown */
+        .nav-dropdown { position: relative; }
+        .dropdown-menu {
+            display: none; position: absolute; top: calc(100% + 6px); left: 0;
+            background: #0f2a1c; border-radius: 10px; padding: 0.5rem;
+            min-width: 190px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 999; list-style: none; border: 1px solid rgba(255,255,255,0.08);
+        }
+        .nav-dropdown:hover .dropdown-menu { display: block; }
+        .dropdown-menu li a { display: block; padding: 7px 12px; border-radius: 7px; color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+        .dropdown-menu li a:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        /* ── MESSAGES ── */
+        .messages { max-width: 1300px; margin: 1rem auto 0; padding: 0 2rem; }
+        .alert { padding: 1rem 1.5rem; border-radius: 10px; margin-bottom: 0.5rem; font-weight: 500; }
+        .alert-success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .alert-error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+
+        /* ── MAIN ── */
+        main { min-height: calc(100vh - 200px); }
+
+        /* ── FOOTER ── */
+        footer { background: var(--green-deep); color: rgba(255,255,255,0.7); padding: 3rem 2rem 1.5rem; }
+        .footer-inner { max-width: 1300px; margin: 0 auto; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 2rem; }
+        .footer-brand h3 { font-family: 'Playfair Display', serif; color: white; font-size: 1.3rem; margin-bottom: 0.75rem; }
+        .footer-brand p { font-size: 0.85rem; line-height: 1.7; }
+        .footer-col h4 { color: var(--green-light); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+        .footer-col a { display: block; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.88rem; margin-bottom: 0.5rem; transition: color 0.2s; }
+        .footer-col a:hover { color: white; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center; font-size: 0.82rem; }
+
+        /* ── UTILITIES ── */
+        .container { max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
+        .page-header {
+            background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+            padding: 4rem 2rem; text-align: center; position: relative; overflow: hidden;
+        }
+        .page-header::before {
+            content: ''; position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .page-header h1 { font-family: 'Playfair Display', serif; color: white; font-size: clamp(1.8rem,4vw,3rem); position: relative; margin-bottom: 0.5rem; }
+        .page-header p { color: rgba(255,255,255,0.75); font-size: 1rem; position: relative; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .badge-wildlife { background: #fce8e8; color: var(--wildlife); }
+        .badge-pest { background: #fef3e2; color: var(--pest); }
+        .badge-weed { background: #e8f5e9; color: var(--weed); }
+        .badge-critical { background: #fce8e8; color: #c44b4b; }
+        .badge-high { background: #fff3e0; color: #e65100; }
+        .badge-medium { background: #fff9c4; color: #f9a825; }
+        .badge-low { background: #e8f5e9; color: #2e7d32; }
+        .btn { display: inline-block; padding: 12px 28px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+        .btn-primary { background: var(--green-mid); color: white; }
+        .btn-primary:hover { background: var(--green-deep); transform: translateY(-1px); box-shadow: var(--shadow); }
+        .btn-gold { background: var(--gold); color: var(--green-deep); }
+        .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: all 0.3s; }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+        /* ── ACCESSIBILITY ── */
+        body.text-large { font-size: 17px !important; }
+        body.text-xlarge { font-size: 20px !important; line-height: 1.9 !important; }
+        body.high-contrast { filter: contrast(1.4); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .nav-links a { padding: 7px 8px; font-size: 0.8rem; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; left: 0; right: 0; background: var(--green-deep); padding: 1rem; gap: 0; z-index: 999; }
+            .nav-links.open { display: flex; }
+            .hamburger { display: flex; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            .dropdown-menu { position: static; display: block; box-shadow: none; background: rgba(0,0,0,0.2); margin: 0 0 0.5rem 1rem; }
+            #translateBar { padding: 5px 1rem; }
+            #translateBar .lang-row { gap: 0.25rem; }
+        }
+        @media (max-width: 480px) {
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+</style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- OFFLINE BANNER -->
+<div id="offlineBanner">
+    📶 You are offline. Some features like live weather require internet.
+</div>
+
+<!-- ACCESSIBILITY & TRANSLATE BAR -->
+<div id="translateBar">
+    <div class="lang-row" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+        <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">🌐</span>
+        <button onclick="translateTo('en')" class="lang-btn active" data-lang="en">English</button>
+        <button onclick="translateTo('hi')" class="lang-btn" data-lang="hi">हिंदी</button>
+        <button onclick="translateTo('pa')" class="lang-btn" data-lang="pa">ਪੰਜਾਬੀ</button>
+        <button onclick="translateTo('mr')" class="lang-btn" data-lang="mr">मराठी</button>
+        <button onclick="translateTo('gu')" class="lang-btn" data-lang="gu">ગુજરાતી</button>
+        <button onclick="translateTo('te')" class="lang-btn" data-lang="te">తెలుగు</button>
+        <button onclick="translateTo('ta')" class="lang-btn" data-lang="ta">தமிழ்</button>
+        <button onclick="translateTo('kn')" class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+        <button onclick="translateTo('ml')" class="lang-btn" data-lang="ml">മലയാളം</button>
+        <button onclick="translateTo('bn')" class="lang-btn" data-lang="bn">বাংলা</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+        <button onclick="changeTextSize('normal')" class="acc-btn" title="Normal text">A</button>
+        <button onclick="changeTextSize('large')" class="acc-btn" title="Large text">A+</button>
+        <button onclick="changeTextSize('xlarge')" class="acc-btn" title="Extra large text">A++</button>
+        <button onclick="toggleHighContrast()" class="acc-btn">◑ Contrast</button>
+        <button onclick="speakPage()" class="acc-btn">🔊 Listen</button>
+        <button onclick="stopSpeaking()" class="acc-btn">⏹ Stop</button>
+        <button onclick="toggleVoice()" id="voiceBtn" class="acc-btn">🎙️ Click-Read</button>
+        <div id="translating_ind" style="display:none;align-items:center;gap:6px;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);border-radius:8px;padding:3px 10px;font-size:.72rem;color:#86efac;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;border:2px solid rgba(134,239,172,.4);border-top-color:#86efac;animation:spin .7s linear infinite;"></span>
+          Translating...
+        </div>
+        <a href="{% url 'community' %}" style="background:#d4a017;color:#1a3a2a;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">👨‍🌾 Community</a>
+        <a href="{% url 'chat_new' %}" style="background:#0369a1;color:white;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">💬 Chat Expert</a>
+        <a href="{% url 'farmer_register' %}" style="background:#16a34a;color:white;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">📱 SMS Alerts</a>
+        {% if user.is_authenticated and user.username == 'AnkushChoudhary' %}
+        <a href="{% url 'expert_panel' %}" style="background:#7c3aed;color:white;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">🏛️ Expert Panel</a>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <span style="color:rgba(255,255,255,.6);font-size:.7rem;">👤 {{ user.first_name|default:user.username }}</span>
+        <a href="{% url 'logout' %}" style="background:rgba(239,68,68,.8);color:white;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">Logout</a>
+        {% else %}
+        <a href="{% url 'login' %}" style="background:rgba(255,255,255,.15);color:white;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">🔑 Login</a>
+        <a href="{% url 'signup' %}" style="background:#d4a017;color:#1a3a2a;padding:3px 12px;border-radius:10px;font-size:0.73rem;font-weight:700;text-decoration:none;white-space:nowrap;">🌱 Sign Up</a>
+        {% endif %}
+    </div>
+</div>
+
+
+
+<nav>
+    <div class="nav-inner">
+        <a href="{% url 'home' %}" class="logo">
+            <div class="logo-icon">🌾</div>
+            <div class="logo-text">
+                Smart Farming
+                <span>Solutions for Farmers</span>
+            </div>
+        </a>
+        <div class="hamburger" onclick="toggleNav()">
+            <span></span><span></span><span></span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li class="nav-dropdown">
+                <a href="{% url 'threat_list' %}">🌾 Threats ▾</a>
+                <ul class="dropdown-menu">
+                    <li><a href="{% url 'wildlife' %}">🦁 Wildlife</a></li>
+                    <li><a href="{% url 'pests' %}">🐛 Pests</a></li>
+                    <li><a href="{% url 'weeds' %}">🌿 Weeds</a></li>
+                    <li><a href="{% url 'threat_list' %}">🔍 All Threats</a></li>
+                </ul>
+            </li>
+            <li><a href="{% url 'weather' %}">⛅ Weather</a></li>
+            <li><a href="{% url 'market_prices' %}">📊 Mandi</a></li>
+            <li><a href="{% url 'irrigation' %}">💧 Irrigation</a></li>
+            <li><a href="{% url 'govt_schemes' %}">🏛️ Schemes</a></li>
+            <li><a href="{% url 'crop_tips' %}">💡 Tips</a></li>
+            <li><a href="{% url 'community' %}">👨‍🌾 Community</a></li>
+            <li><a href="{% url 'ask_expert' %}" class="nav-cta">Ask Expert</a></li>
+        </ul>
+    </div>
+</nav>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>🌾 Smart Farming Solutions</h3>
+                <p>Helping farmers across India maximize crop yield and protect their fields from wildlife, pests, and weeds with science-backed solutions.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Threats</h4>
+                <a href="{% url 'wildlife' %}">Wildlife Protection</a>
+                <a href="{% url 'pests' %}">Pest & Insect Control</a>
+                <a href="{% url 'weeds' %}">Weed Management</a>
+                <a href="{% url 'threat_list' %}">All Threats</a>
+            </div>
+            <div class="footer-col">
+                <h4>Tools</h4>
+                <a href="{% url 'weather' %}">⛅ Weather Advisory</a>
+                <a href="{% url 'market_prices' %}">📊 Mandi Prices</a>
+                <a href="{% url 'irrigation' %}">💧 Irrigation Calc</a>
+                <a href="{% url 'govt_schemes' %}">🏛️ Govt Schemes</a>
+                <a href="{% url 'crop_tips' %}">💡 Crop Tips</a>
+                <a href="{% url 'ask_expert' %}">🧑‍🌾 Ask Expert</a>
+            </div>
+            <div class="footer-col">
+                <h4>Govt. Resources</h4>
+                <a href="https://farmer.gov.in" target="_blank">Farmer.gov.in</a>
+                <a href="https://icar.org.in" target="_blank">ICAR</a>
+                <a href="https://pmkisan.gov.in" target="_blank">PM-KISAN</a>
+                <a href="https://enam.gov.in" target="_blank">e-NAM Market</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Smart Farming Solutions · Built with Django for Indian Farmers 🇮🇳</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Google Translate hidden (for fallback) -->
+<div id="google_translate_element" style="display:none;position:absolute;left:-9999px"></div>
+<script>
+function googleTranslateElementInit(){
+    new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'hi,pa,mr,gu,te,ta,kn,ml,bn,or,en',autoDisplay:false},'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+
+<script>
+/* =======================================================
+   SMARTFARM v11 — LANGUAGE + VOICE ENGINE
+   Translation : Google Translate widget (cookie + combo)
+   Voice       : Web Speech API (reads translated DOM)
+   Auth        : User info passed from Django context
+   ONE file, no duplicates.
+======================================================= */
+var SF = {
+    lang: localStorage.getItem('sf_lang') || 'en',
+    voiceOn: false,
+    voices: [],
+    bcp: {en:'en-IN',hi:'hi-IN',pa:'pa-IN',mr:'mr-IN',gu:'gu-IN',
+          te:'te-IN',ta:'ta-IN',kn:'kn-IN',ml:'ml-IN',bn:'bn-IN',or:'or-IN'},
+    names: {en:'English',hi:'हिंदी',pa:'ਪੰਜਾਬੀ',mr:'मराठी',gu:'ગુજરાતી',
+            te:'తెలుగు',ta:'தமிழ்',kn:'ಕನ್ನಡ',ml:'മലയാളം',bn:'বাংলা',or:'ଓଡ଼ਿਆ'}
+};
+
+/* Voice loading */
+function _lv(){ SF.voices=window.speechSynthesis?window.speechSynthesis.getVoices():[]; }
+if(window.speechSynthesis){ _lv(); if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=_lv; }
+function _bv(bcp){
+    var p=bcp.split('-')[0];
+    return SF.voices.find(function(v){return v.lang===bcp;})
+        || SF.voices.find(function(v){return v.lang.startsWith(p);})
+        || SF.voices.find(function(v){return v.lang.startsWith('en');})
+        || null;
+}
+
+/* ── Cookie helpers ── */
+function _gtGet(){
+    var m=document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
+    return m?decodeURIComponent(m[1]):'';
+}
+function _gtSet(lang){
+    var val=(lang==='en')?'':'/en/'+lang;
+    var exp=(lang==='en')?'; expires=Thu,01 Jan 1970 00:00:00 UTC':'; max-age=86400';
+    var h=location.hostname;
+    document.cookie='googtrans='+val+exp+'; path=/';
+    if(h&&h!=='localhost'&&!/^\d+\.\d+/.test(h)){
+        document.cookie='googtrans='+val+exp+'; path=/; domain=.'+h;
+    }
+}
+
+/* ── Translation ── */
+function translateTo(lang){
+    SF.lang=lang;
+    localStorage.setItem('sf_lang',lang);
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+        b.classList.toggle('active',b.dataset.lang===lang);
+    });
+
+    if(lang==='en'){
+        _gtSet('en');
+        var sel=document.querySelector('.goog-te-combo');
+        if(sel){ sel.value='en'; sel.dispatchEvent(new Event('change')); _toast('✅ English'); }
+        else { _bar('Switching to English...'); setTimeout(function(){location.reload();},200); }
+        return;
+    }
+
+    _bar('Translating to '+SF.names[lang]+'...');
+    _gtSet(lang);
+
+    // Try immediate combo trigger (works if widget loaded)
+    var sel=document.querySelector('.goog-te-combo');
+    if(sel){
+        sel.value=lang;
+        sel.dispatchEvent(new Event('change'));
+        setTimeout(function(){ _clearBar(); _toast('✅ '+SF.names[lang]); }, 900);
+        return;
+    }
+
+    // Widget not ready: retry up to 3 seconds
+    var tries=0;
+    var iv=setInterval(function(){
+        tries++;
+        var s=document.querySelector('.goog-te-combo');
+        if(s){
+            clearInterval(iv);
+            s.value=lang;
+            s.dispatchEvent(new Event('change'));
+            setTimeout(function(){ _clearBar(); _toast('✅ '+SF.names[lang]); }, 700);
+        } else if(tries>12){
+            clearInterval(iv);
+            // Last resort: reload with cookie
+            setTimeout(function(){ location.reload(); },150);
+        }
+    },250);
+}
+
+function _bar(msg){
+    var b=document.getElementById('_sfprog');
+    if(!b){
+        b=document.createElement('div'); b.id='_sfprog';
+        b.style.cssText='position:fixed;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#22c55e 0%,#16a34a 50%,#22c55e 100%);background-size:200%;z-index:999999;animation:_sfbar 1s linear infinite;';
+        var st=document.createElement('style'); st.textContent='@keyframes _sfbar{0%{background-position:0%}100%{background-position:200%}}';
+        document.head.appendChild(st); document.body.appendChild(b);
+    }
+    var t=document.getElementById('_sfmsg');
+    if(!t){
+        t=document.createElement('div'); t.id='_sfmsg';
+        t.style.cssText='position:fixed;top:56px;right:14px;background:#1a3a2a;color:white;padding:8px 16px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.4);';
+        document.body.appendChild(t);
+    }
+    t.textContent='🌐 '+msg; t.style.opacity='1';
+}
+function _clearBar(){
+    var b=document.getElementById('_sfprog'); if(b) b.remove();
+    var t=document.getElementById('_sfmsg'); if(t) t.style.opacity='0';
+}
+function _toast(msg){
+    _clearBar();
+    var t=document.getElementById('_sfmsg');
+    if(!t){
+        t=document.createElement('div'); t.id='_sfmsg';
+        t.style.cssText='position:fixed;top:56px;right:14px;background:#1a3a2a;color:white;padding:8px 16px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:opacity .4s;';
+        document.body.appendChild(t);
+    }
+    t.textContent=msg; t.style.opacity='1';
+    clearTimeout(t._t); t._t=setTimeout(function(){t.style.opacity='0';},2500);
+}
+
+/* ── Voice ── */
+function speakText(text,lang){
+    if(!window.speechSynthesis||!text||!text.trim()) return;
+    if(window.speechSynthesis.paused) window.speechSynthesis.resume();
+    window.speechSynthesis.cancel();
+    var bcp=SF.bcp[lang||SF.lang]||'en-IN';
+    var utt=new SpeechSynthesisUtterance(text.trim().slice(0,600));
+    utt.lang=bcp; utt.rate=0.88; utt.pitch=1.05;
+    var v=_bv(bcp); if(v) utt.voice=v;
+    setTimeout(function(){ window.speechSynthesis.speak(utt); },60);
+}
+function speakPage(){
+    var main=document.querySelector('main'); if(!main) return;
+    var txts=[];
+    main.querySelectorAll('h1,h2,h3,p').forEach(function(el){
+        var t=el.innerText.trim(); if(t.length>4) txts.push(t);
+    });
+    speakText(txts.slice(0,12).join('. '),SF.lang);
+}
+function stopSpeaking(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); }
+
+var _vch=function(e){
+    var el=e.target.closest('p,h1,h2,h3,h4,li,td');
+    if(!el||el.closest('#translateBar,nav,footer')) return;
+    var txt=el.innerText.trim(); if(!txt||txt.length<3) return;
+    var po=el.style.outline;
+    el.style.outline='2px solid #40916c';
+    el.style.backgroundColor='rgba(64,145,108,.07)';
+    speakText(txt,SF.lang);
+    setTimeout(function(){el.style.outline=po;el.style.backgroundColor='';},2800);
+};
+function toggleVoice(){
+    SF.voiceOn=!SF.voiceOn;
+    var btn=document.getElementById('voiceBtn');
+    if(SF.voiceOn){
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+        btn.classList.add('voice-active'); btn.textContent='🔴 Stop Read';
+        document.addEventListener('click',_vch,true);
+        var tip=document.createElement('div');
+        tip.id='_vtip'; tip.style.cssText='position:fixed;bottom:20px;right:20px;background:#1a3a2a;color:white;padding:10px 16px;border-radius:10px;font-size:.8rem;z-index:99999;';
+        tip.textContent='🎙️ Click any text to read aloud in '+SF.names[SF.lang];
+        document.body.appendChild(tip);
+        setTimeout(function(){var t=document.getElementById('_vtip');if(t)t.remove();},3500);
+    } else {
+        btn.classList.remove('voice-active'); btn.textContent='🎙️ Click-Read';
+        document.removeEventListener('click',_vch,true); stopSpeaking();
+    }
+}
+
+/* ── Accessibility ── */
+function changeTextSize(s){
+    document.body.classList.remove('text-large','text-xlarge');
+    if(s==='large') document.body.classList.add('text-large');
+    if(s==='xlarge') document.body.classList.add('text-xlarge');
+    localStorage.setItem('sf_textsize',s);
+}
+function toggleHighContrast(){
+    document.body.classList.toggle('high-contrast');
+    localStorage.setItem('sf_contrast',document.body.classList.contains('high-contrast')?'1':'0');
+}
+function toggleNav(){ document.getElementById('navLinks').classList.toggle('open'); }
+function checkOnline(){ var b=document.getElementById('offlineBanner'); if(b) b.classList.toggle('show',!navigator.onLine); }
+window.addEventListener('online',checkOnline);
+window.addEventListener('offline',checkOnline);
+
+document.addEventListener('DOMContentLoaded',function(){
+    checkOnline();
+    var sz=localStorage.getItem('sf_textsize'); if(sz) changeTextSize(sz);
+    if(localStorage.getItem('sf_contrast')==='1') document.body.classList.add('high-contrast');
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+        b.classList.toggle('active',b.dataset.lang===SF.lang);
+    });
+    // Show toast if page loaded in a translated state
+    var cookie=_gtGet();
+    if(cookie&&cookie!==''&&SF.lang!=='en'){
+        setTimeout(function(){ _toast('✅ '+SF.names[SF.lang]); },1400);
+    }
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

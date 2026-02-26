@@ -1,0 +1,126 @@
+{% extends 'farming/base.html' %}
+{% block title %}Chat with Expert — Smart Farming{% endblock %}
+{% block extra_css %}
+<style>
+.chat-entry{max-width:600px;margin:3rem auto;padding:0 1.5rem;}
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+.role-card{border-radius:18px;padding:1.75rem;text-align:center;cursor:pointer;border:2.5px solid transparent;transition:all .25s;}
+.role-card.farmer-card{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#bbf7d0;}
+.role-card.farmer-card.selected,.role-card.farmer-card:hover{border-color:#16a34a;background:linear-gradient(135deg,#dcfce7,#bbf7d0);box-shadow:0 4px 20px rgba(22,163,74,.2);}
+.role-card.expert-card{background:linear-gradient(135deg,#fefce8,#fef9c3);border-color:#fde047;}
+.role-card.expert-card.selected,.role-card.expert-card:hover{border-color:#ca8a04;background:linear-gradient(135deg,#fef9c3,#fde68a);box-shadow:0 4px 20px rgba(202,138,4,.2);}
+.role-icon{font-size:2.8rem;margin-bottom:.5rem;}
+.role-title{font-weight:700;font-size:1rem;color:#1a3a2a;margin-bottom:.25rem;}
+.role-desc{font-size:.8rem;color:#64748b;}
+.form-card{background:white;border-radius:20px;padding:2rem;box-shadow:0 4px 24px rgba(0,0,0,.1);}
+.form-card h2{font-family:'Playfair Display',serif;color:#1a3a2a;margin-bottom:.4rem;}
+.form-card>p{color:#64748b;font-size:.88rem;margin-bottom:1.5rem;}
+.fg{margin-bottom:1.1rem;}
+.fg label{display:block;font-size:.8rem;font-weight:700;color:#1a3a2a;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em;}
+.fg input,.fg textarea{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:'DM Sans',sans-serif;background:#fafcfa;outline:none;transition:border .2s;}
+.fg input:focus,.fg textarea:focus{border-color:#22c55e;background:white;}
+.fg textarea{min-height:110px;resize:vertical;line-height:1.6;}
+.submit-btn{width:100%;padding:13px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.farmer-btn{background:linear-gradient(135deg,#16a34a,#22c55e);color:white;}
+.expert-btn{background:linear-gradient(135deg,#ca8a04,#eab308);color:white;}
+.submit-btn:hover{opacity:.9;}
+.error-msg{background:#fff1f2;border:1.5px solid #f43f5e;border-radius:10px;padding:.75rem 1rem;color:#be123c;font-size:.85rem;margin-bottom:1rem;}
+.pane{display:none;}
+.pane.active{display:block;}
+.expert-note{background:#fefce8;border:1px solid #fde047;border-radius:12px;padding:.85rem 1.1rem;font-size:.82rem;color:#713f12;margin-bottom:1.2rem;line-height:1.6;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>💬 Expert Consultation Chat</h1>
+  <p>Farmers ask questions · Experts provide verified answers</p>
+</div>
+
+<div class="chat-entry">
+  <!-- ROLE SELECTION -->
+  <div class="role-tabs">
+    <div class="role-card farmer-card selected" id="tab-farmer" onclick="switchRole('farmer')">
+      <div class="role-icon">🧑‍🌾</div>
+      <div class="role-title">I am a Farmer</div>
+      <div class="role-desc">Ask crop questions, get expert advice</div>
+    </div>
+    <div class="role-card expert-card" id="tab-expert" onclick="switchRole('expert')">
+      <div class="role-icon">👨‍💼</div>
+      <div class="role-title">I am an Expert</div>
+      <div class="role-desc">Answer farmer questions with code</div>
+    </div>
+  </div>
+
+  <!-- FARMER FORM -->
+  <div class="pane active" id="pane-farmer">
+    <div class="form-card">
+      <h2>🧑‍🌾 Start a Chat</h2>
+      <p>Describe your crop problem and our agricultural expert will respond with personalized advice.</p>
+      {% if error %}<div class="error-msg">❌ {{ error }}</div>{% endif %}
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="farmer">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="fg">
+            <label>Your Name</label>
+            <input type="text" name="name" placeholder="e.g. Gurpreet Singh" required>
+          </div>
+          <div class="fg">
+            <label>Phone (optional)</label>
+            <input type="tel" name="phone" placeholder="10-digit number">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Your Crop Problem *</label>
+          <textarea name="message" placeholder="Describe in detail: which crop, what symptoms you see, since how many days, how much area is affected, what you already tried..." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn farmer-btn">💬 Start Chat with Expert</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EXPERT LOGIN FORM -->
+  <div class="pane" id="pane-expert">
+    <div class="form-card">
+      <h2>👨‍💼 Expert Login</h2>
+      <p>Enter your expert credentials to access all farmer chats and provide answers.</p>
+      {% if error %}<div class="error-msg">❌ {{ error }}</div>{% endif %}
+      <div class="expert-note">
+        🔑 <strong>Expert Code:</strong> Use the secret code provided by SmartFarm admin. Only verified agricultural experts can access this panel. Contact admin if you need access.
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="expert">
+        <div class="fg">
+          <label>Your Name / Title</label>
+          <input type="text" name="expert_name" placeholder="e.g. Dr. Ramesh Kumar, KVK Specialist" required>
+        </div>
+        <div class="fg">
+          <label>Expert Access Code *</label>
+          <input type="password" name="expert_code" placeholder="Enter your expert code" required autocomplete="off">
+        </div>
+        <button type="submit" class="submit-btn expert-btn">🔓 Access Expert Panel</button>
+      </form>
+    </div>
+  </div>
+
+  {% if is_expert_session %}
+  <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:14px;padding:1.25rem;text-align:center;margin-top:1.5rem;">
+    <div style="font-size:2rem;margin-bottom:.5rem;">👨‍💼</div>
+    <strong style="color:#14532d;display:block;font-size:1rem;">You are logged in as Expert</strong>
+    <p style="color:#166534;font-size:.85rem;margin:.5rem 0 1rem;">You can view and reply to all farmer chats.</p>
+    <a href="{% url 'chat_list' %}" style="background:#16a34a;color:white;padding:10px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:.9rem;">📋 View All Chats →</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function switchRole(role) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('pane-' + role).classList.add('active');
+  document.getElementById('tab-' + role).classList.add('selected');
+}
+</script>
+{% endblock %}

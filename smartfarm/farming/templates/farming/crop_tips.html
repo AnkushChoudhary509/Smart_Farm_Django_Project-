@@ -1,0 +1,108 @@
+{% extends 'farming/base.html' %}
+{% block title %}Crop Tips - Smart Farming Solutions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tips-wrapper {
+        max-width: 1100px;
+        margin: 3rem auto;
+        padding: 0 2rem;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-row input, .filter-row select {
+        padding: 10px 16px;
+        border: 1.5px solid #dde8dd;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    .filter-row input:focus, .filter-row select:focus { border-color: var(--green-bright); }
+    .filter-row button { background: var(--green-mid); color: white; border: none; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+
+    .tips-list { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .tip-item {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border-left: 5px solid var(--green-bright);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .tip-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--green-deep); margin-bottom: 0.75rem; }
+    .tip-content { color: #4a6a4a; line-height: 1.8; font-size: 0.92rem; }
+    .tip-meta { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+    .tip-tag { background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .tip-season-tag { background: #fff9e6; color: #e65100; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+
+    .tip-num {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--green-bright), var(--green-mid));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>💡 Crop Production Tips</h1>
+    <p>Expert tips to maximize your yield and keep crops healthy</p>
+</div>
+
+<div class="tips-wrapper">
+    <form method="get" class="filter-row">
+        <input type="text" name="crop_type" value="{{ crop_type }}" placeholder="Filter by crop (e.g. Wheat, Rice)">
+        <select name="season">
+            <option value="">All Seasons</option>
+            <option value="Kharif" {% if season == 'Kharif' %}selected{% endif %}>Kharif (Summer)</option>
+            <option value="Rabi" {% if season == 'Rabi' %}selected{% endif %}>Rabi (Winter)</option>
+            <option value="All" {% if season == 'All' %}selected{% endif %}>All Seasons</option>
+        </select>
+        <button type="submit">Filter</button>
+        {% if season or crop_type %}
+        <a href="{% url 'crop_tips' %}" style="padding:10px 16px;color:#888;text-decoration:none;align-self:center;">✕ Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="tips-list">
+        {% for tip in tips %}
+        <div class="tip-item">
+            <div>
+                <h3 class="tip-title">{{ tip.title }}</h3>
+                <p class="tip-content">{{ tip.content }}</p>
+                <div class="tip-meta">
+                    <span class="tip-tag">🌱 {{ tip.crop_type }}</span>
+                    <span class="tip-season-tag">📅 {{ tip.season }}</span>
+                </div>
+            </div>
+            <div class="tip-num">{{ forloop.counter }}</div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:3rem;color:#888;">
+            <p>No tips found. Try changing your filters.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

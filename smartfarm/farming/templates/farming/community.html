@@ -1,0 +1,585 @@
+{% extends 'farming/base.html' %}
+{% block title %}Farmer Community Hub — Smart Farming{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+.comm-hero {
+  background: linear-gradient(150deg, #1a0f08 0%, #2d1a08 40%, #3d2a0a 100%);
+  padding: 3.5rem 2rem 2rem; position: relative; overflow: hidden;
+}
+.comm-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 15% 50%, rgba(200,146,42,0.2) 0%, transparent 55%),
+              radial-gradient(ellipse at 85% 0%, rgba(45,138,79,0.15) 0%, transparent 50%);
+}
+.comm-hero-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.comm-title { font-family: 'Playfair Display', serif; color: white; font-size: clamp(2rem,4vw,3rem); margin-bottom: 0.5rem; }
+.comm-title span { color: #f4c84e; }
+.comm-subtitle { color: rgba(255,255,255,0.65); font-size: 1rem; max-width: 600px; line-height: 1.7; }
+.comm-stats { display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap; }
+.cs .num { font-family: 'Sora', sans-serif; font-size: 1.6rem; font-weight: 800; color: #f4c84e; }
+.cs .lbl { font-size: 0.75rem; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.08em; }
+.disclaimer {
+  background: linear-gradient(90deg, #7a3a00, #9a5000);
+  border-bottom: 3px solid #c8922a;
+  padding: 0.85rem 2rem;
+}
+.disc-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 1rem; }
+.disc-text { color: #ffe8c0; line-height: 1.5; font-size: 0.85rem; }
+.disc-text strong { color: white; }
+.comm-body { max-width: 1200px; margin: 0 auto; padding: 2rem; display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+.filter-bar { background: white; border-radius: 14px; padding: 1rem 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #f0e8d8; }
+.filter-select { padding: 7px 12px; border-radius: 8px; border: 1.5px solid #e2d8cc; font-size: 0.85rem; font-family: 'DM Sans', sans-serif; background: #faf7f2; color: #3d2a0a; outline: none; }
+.filter-btn { padding: 7px 16px; border-radius: 8px; border: 1.5px solid #e2d8cc; background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; color: #5a4a3a; transition: all 0.2s; }
+.filter-btn.active { background: #3d1f0a; color: white; border-color: #3d1f0a; }
+.post-card { background: white; border-radius: 18px; margin-bottom: 1.25rem; box-shadow: 0 3px 16px rgba(0,0,0,0.07); border: 1px solid #f0ece6; overflow: hidden; transition: transform 0.2s; }
+.post-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+.post-header { padding: 1.1rem 1.4rem 0.8rem; display: flex; align-items: flex-start; gap: 0.85rem; }
+.post-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: white; }
+.av-success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+.av-warning { background: linear-gradient(135deg, #dc2626, #f97316); }
+.av-question { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+.av-tip { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+.av-photo { background: linear-gradient(135deg, #c8922a, #f4c84e); }
+.post-meta { flex: 1; }
+.post-name { font-weight: 700; font-size: 0.92rem; color: #1a0f08; }
+.post-state-crop { font-size: 0.75rem; color: #8a7a6a; margin-top: 2px; }
+.post-badge { padding: 3px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+.badge-success { background: #dcfce7; color: #14532d; }
+.badge-warning { background: #fee2e2; color: #991b1b; }
+.badge-question { background: #ede9fe; color: #5b21b6; }
+.badge-tip { background: #dbeafe; color: #1e40af; }
+.badge-photo { background: #fef3c7; color: #92400e; }
+.post-time { font-size: 0.72rem; color: #a09080; margin-top: 4px; }
+.post-body { padding: 0 1.4rem; }
+.post-content { font-size: 0.9rem; color: #2d1f10; line-height: 1.75; margin-bottom: 0.75rem; }
+.photo-box { background: linear-gradient(135deg, #fef9f0, #fef3e0); border: 1.5px dashed #c8922a; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+.photo-box p { font-size: 0.82rem; color: #7a5a20; margin: 0; font-style: italic; line-height: 1.5; }
+.post-disclaimer { background: #fff8f0; border: 1px solid #fcd9a0; border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.75rem; color: #8a5a00; display: flex; gap: 0.4rem; align-items: center; }
+.post-footer { padding: 0.75rem 1.4rem; border-top: 1px solid #f5f0ea; display: flex; align-items: center; gap: 0.75rem; }
+.like-btn { background: none; border: 1.5px solid #e0d8d0; border-radius: 8px; padding: 5px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 0.4rem; color: #5a4a3a; }
+.like-btn:hover { background: #fff0e0; border-color: #c8922a; color: #3d1f0a; }
+.like-btn.liked { background: #fff0e0; border-color: #c8922a; color: #3d1f0a; }
+.share-btn { background: none; border: 1.5px solid #e0d8d0; border-radius: 8px; padding: 5px 14px; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; color: #5a4a3a; }
+.share-btn:hover { background: #f0f8ff; border-color: #2d7dd2; color: #2d7dd2; }
+.crop-tag { margin-left: auto; padding: 3px 10px; background: #f0f7f0; color: #2d8a4f; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+.sidebar { position: sticky; top: 90px; }
+.post-form-card { background: white; border-radius: 18px; padding: 1.5rem; box-shadow: 0 3px 16px rgba(0,0,0,0.08); border: 1px solid #f0ece6; margin-bottom: 1.25rem; }
+.form-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #1a0f08; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+.cf-group { margin-bottom: 0.75rem; }
+.cf-group label { font-size: 0.75rem; font-weight: 700; color: #7a6a5a; text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 0.3rem; }
+.cf-group input, .cf-group select, .cf-group textarea { width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1.5px solid #e8ddd0; font-size: 0.88rem; font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #2d1a08; outline: none; transition: border 0.2s; }
+.cf-group input:focus, .cf-group select:focus, .cf-group textarea:focus { border-color: #c8922a; background: white; }
+.cf-group textarea { resize: vertical; min-height: 100px; }
+.cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.photo-upload-zone { border: 2px dashed #c8922a; border-radius: 10px; padding: 1rem; text-align: center; background: #fef9f0; cursor: pointer; transition: all 0.2s; margin-bottom: 0.75rem; }
+.photo-upload-zone:hover { background: #fef0d8; }
+.photo-upload-zone p { font-size: 0.82rem; color: #8a6020; margin: 0.4rem 0 0; }
+.form-disclaimer { background: #fff8f0; border: 1.5px solid #f4c84e; border-radius: 10px; padding: 0.85rem; margin-bottom: 0.85rem; }
+.form-disclaimer h4 { font-size: 0.8rem; font-weight: 700; color: #7a4a00; margin-bottom: 0.35rem; }
+.form-disclaimer p { font-size: 0.78rem; color: #8a5a00; margin: 0; line-height: 1.6; }
+.submit-btn { width: 100%; padding: 0.85rem; border-radius: 12px; background: linear-gradient(135deg, #2d1a08, #5a3a18); color: white; font-weight: 700; font-size: 0.92rem; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(45,26,8,0.4); }
+.sidebar-card { background: white; border-radius: 16px; padding: 1.25rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #f0ece6; margin-bottom: 1.25rem; }
+.sidebar-card h3 { font-size: 0.85rem; font-weight: 700; color: #1a0f08; margin-bottom: 1rem; }
+.community-rule { display: flex; gap: 0.75rem; margin-bottom: 0.7rem; align-items: flex-start; }
+.community-rule .rule-num { min-width: 24px; height: 24px; background: #3d1f0a; color: white; border-radius: 50%; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.community-rule p { font-size: 0.82rem; color: #5a4a3a; margin: 0; line-height: 1.5; }
+.access-card { background: linear-gradient(135deg, #1a3a2a, #2d6a4f); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.access-card h3 { color: #74c69d; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+.access-item { display: flex; gap: 0.6rem; margin-bottom: 0.6rem; align-items: flex-start; }
+.access-item .at { font-size: 0.8rem; color: rgba(255,255,255,0.85); line-height: 1.5; }
+.access-item .at strong { color: white; display: block; }
+.contributor { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.contrib-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; flex-shrink: 0; }
+.contrib-name { font-size: 0.85rem; font-weight: 600; color: #2d1a08; }
+.contrib-info { font-size: 0.72rem; color: #8a7a6a; }
+.contrib-count { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: #c8922a; }
+@media (max-width: 900px) { .comm-body { grid-template-columns: 1fr; } .sidebar { position: static; } }
+
+/* ─── CHAT-STYLE COMMENT CSS ─── */
+.chat-section { border-top: 1px solid #f0ece6; }
+.chat-toggle-row { padding: .5rem 1.4rem; }
+.chat-toggle-btn { display:flex; align-items:center; gap:.5rem; background:none; border:none; cursor:pointer; font-size:.84rem; font-weight:600; color:#5a4a3a; font-family:'DM Sans',sans-serif; padding:.4rem .6rem; border-radius:8px; transition:background .15s; }
+.chat-toggle-btn:hover { background:#faf0e0; }
+.ct-icon { font-size:1rem; }
+.ct-count { background:#f4c84e; color:#3d1f0a; padding:1px 8px; border-radius:10px; font-size:.72rem; font-weight:700; }
+.ct-arrow { font-size:.65rem; color:#a09080; transition:transform .2s; }
+.ct-arrow.open { transform: rotate(180deg); }
+.chat-body { background:#f7f4f0; border-top:1px solid #ede8e0; }
+.chat-msgs { padding:1rem 1rem .5rem; display:flex; flex-direction:column; gap:.75rem; max-height:420px; overflow-y:auto; }
+.chat-msg { display:flex; gap:.6rem; align-items:flex-start; }
+.chat-msg.msg-expert .chat-bubble { background:linear-gradient(135deg,#f0fff4,#e6ffed); border-left:3px solid #22c55e; }
+.chat-avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:700; color:white; flex-shrink:0; }
+.av-farmer { background:linear-gradient(135deg,#c8922a,#e8b040); }
+.av-expert { background:linear-gradient(135deg,#16a34a,#22c55e); }
+.sm-av { width:26px; height:26px; font-size:.72rem; }
+.chat-bubble-wrap { flex:1; min-width:0; }
+.chat-sender-row { display:flex; align-items:center; gap:.4rem; margin-bottom:.25rem; flex-wrap:wrap; }
+.chat-sender-name { font-weight:700; font-size:.8rem; color:#1a0f08; }
+.expert-tag { background:#22c55e; color:white; padding:1px 7px; border-radius:8px; font-size:.62rem; font-weight:700; }
+.chat-state { font-size:.7rem; color:#8a7a6a; }
+.chat-time { font-size:.68rem; color:#a09080; margin-left:auto; }
+.chat-bubble { background:white; border-radius:0 12px 12px 12px; padding:.65rem .9rem; font-size:.87rem; color:#2d1f10; line-height:1.65; box-shadow:0 1px 4px rgba(0,0,0,.06); border:1px solid #ede8e0; }
+.reply-bubble { background:#f9f7f4; font-size:.83rem; }
+.chat-actions { display:flex; gap:.4rem; margin-top:.3rem; }
+.chat-like-btn,.chat-reply-btn { background:none; border:none; font-size:.74rem; color:#8a7a6a; cursor:pointer; padding:2px 7px; border-radius:6px; font-family:'DM Sans',sans-serif; }
+.chat-like-btn:hover { background:#fff0e0; color:#c8922a; }
+.chat-reply-btn:hover { background:#f0e8d8; color:#3d1f0a; }
+.chat-reply { display:flex; gap:.4rem; align-items:flex-start; margin-top:.4rem; margin-left:1rem; padding-left:.6rem; border-left:2px solid #e0d8d0; }
+.inline-reply-form { margin-top:.5rem; }
+.inline-reply-row { display:flex; gap:.4rem; margin-bottom:.4rem; flex-wrap:wrap; }
+.inline-reply-row input { padding:6px 9px; border:1.5px solid #e0d8d0; border-radius:8px; font-size:.8rem; font-family:'DM Sans',sans-serif; outline:none; background:white; }
+.inline-reply-row input:focus { border-color:#c8922a; }
+.inline-reply-send { display:flex; gap:.4rem; align-items:flex-end; }
+.inline-reply-send textarea { flex:1; padding:7px 10px; border:1.5px solid #e0d8d0; border-radius:10px; font-size:.84rem; font-family:'DM Sans',sans-serif; outline:none; background:white; line-height:1.5; }
+.inline-reply-send textarea:focus { border-color:#c8922a; }
+.send-btn { background:linear-gradient(135deg,#c8922a,#e8b040); color:white; border:none; border-radius:10px; padding:8px 14px; font-size:.88rem; cursor:pointer; white-space:nowrap; }
+.chat-empty { text-align:center; padding:1.5rem; color:#a09080; font-size:.84rem; }
+.chat-empty span { font-size:1.8rem; display:block; margin-bottom:.4rem; }
+/* Chat input bar (WhatsApp-style bottom bar) */
+.chat-input-bar { background:white; border-top:1px solid #e8e0d8; padding:.75rem 1rem; }
+.cib-top { display:flex; gap:.4rem; margin-bottom:.5rem; flex-wrap:wrap; }
+.cib-top input { flex:1; min-width:80px; padding:6px 9px; border:1.5px solid #e0d8d0; border-radius:8px; font-size:.8rem; font-family:'DM Sans',sans-serif; outline:none; background:#fafaf8; }
+.cib-top input:focus { border-color:#c8922a; background:white; }
+.cib-bottom { display:flex; gap:.5rem; align-items:flex-end; }
+.cib-text { flex:1; padding:9px 13px; border:1.5px solid #e0d8d0; border-radius:20px; font-size:.88rem; font-family:'DM Sans',sans-serif; outline:none; background:#fafaf8; resize:none; overflow:hidden; line-height:1.5; min-height:38px; max-height:120px; }
+.cib-text:focus { border-color:#c8922a; background:white; }
+.cib-send { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#c8922a,#e8b040); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .15s; }
+.cib-send:hover { transform:scale(1.08); }
+
+
+/* ─── COMMENT THREAD CSS ─── */
+.comments-section{border-top:1px solid #f0ece6;}
+.comments-toggle{width:100%;background:none;border:none;padding:.65rem 1.4rem;display:flex;align-items:center;gap:.5rem;font-size:.83rem;font-weight:600;color:#7a6a5a;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.comments-toggle:hover{background:#faf7f2;}
+.comments-toggle .ccount{background:#f4c84e;color:#3d1f0a;padding:1px 7px;border-radius:10px;font-size:.7rem;font-weight:700;}
+.comments-body{padding:.75rem 1.4rem 1rem;display:none;}
+.comments-body.open{display:block;}
+.comment-item{margin-bottom:.75rem;padding:.7rem .9rem;border-radius:12px;background:#faf8f5;border-left:3px solid #e8ddd0;}
+.comment-item.expert-comment{background:#f0fff4;border-left-color:#22c55e;}
+.comment-item.reply{margin-left:1.5rem;margin-top:.4rem;background:#f5f3f0;border-left-color:#d0c8c0;}
+.ci-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;flex-wrap:wrap;}
+.ci-name{font-weight:700;font-size:.82rem;color:#1a0f08;}
+.ci-expert-badge{background:#22c55e;color:white;padding:1px 8px;border-radius:8px;font-size:.65rem;font-weight:700;}
+.ci-state{font-size:.72rem;color:#8a7a6a;}
+.ci-time{font-size:.7rem;color:#a09080;margin-left:auto;}
+.ci-text{font-size:.86rem;color:#2d1f10;line-height:1.65;}
+.ci-actions{display:flex;align-items:center;gap:.5rem;margin-top:.4rem;}
+.ci-reply-btn{background:none;border:none;font-size:.76rem;color:#8a7a6a;cursor:pointer;padding:2px 8px;border-radius:6px;font-family:'DM Sans',sans-serif;}
+.ci-reply-btn:hover{background:#f0e8d8;color:#3d1f0a;}
+.ci-like-btn{background:none;border:none;font-size:.76rem;color:#8a7a6a;cursor:pointer;padding:2px 8px;border-radius:6px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:3px;}
+.ci-like-btn:hover{background:#fff0e0;color:#c8922a;}
+.comment-form{margin-top:.75rem;background:white;border-radius:10px;padding:.85rem;border:1.5px solid #e8ddd0;}
+.comment-form.reply-form{margin-left:1rem;background:#fffef8;}
+.cf-row2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;}
+.comment-form input,.comment-form textarea{width:100%;padding:7px 10px;border:1.5px solid #e8ddd0;border-radius:8px;font-size:.84rem;font-family:'DM Sans',sans-serif;outline:none;background:#fafaf8;}
+.comment-form input:focus,.comment-form textarea:focus{border-color:#c8922a;background:white;}
+.comment-form textarea{min-height:68px;resize:vertical;line-height:1.55;margin-bottom:.5rem;}
+.comment-submit-btn{padding:7px 18px;background:linear-gradient(135deg,#c8922a,#e8b040);color:white;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.expert-submit-btn{padding:7px 18px;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;}
+.no-comments{font-size:.82rem;color:#a09080;font-style:italic;padding:.5rem 0;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comm-hero">
+  <div class="comm-hero-inner">
+    <h1 class="comm-title">Farmer <span>Community</span> Hub</h1>
+    <p class="comm-subtitle">Real farmers. Real experiences. Share crop problems, success stories, warnings, and tips. Help each other grow better.</p>
+    <div class="comm-stats">
+      <div class="cs"><div class="num">{{ total_posts }}+</div><div class="lbl">Posts Shared</div></div>
+      <div class="cs"><div class="num">28</div><div class="lbl">States Active</div></div>
+      <div class="cs"><div class="num">12</div><div class="lbl">Crop Types</div></div>
+      <div class="cs"><div class="num">Free</div><div class="lbl">Always Free</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <div class="disc-inner">
+    <span style="font-size:1.4rem;flex-shrink:0;">⚠️</span>
+    <p class="disc-text"><strong>Important Disclaimer:</strong> All posts are from fellow farmers sharing personal experiences — <strong>NOT professional agricultural advice.</strong> Always consult your local Krishi Vigyan Kendra (KVK), Agriculture Extension Officer, or verified expert before implementing any suggestion. Crop conditions vary by region, soil, and season. Always test on a small plot first.</p>
+  </div>
+</div>
+
+<div class="comm-body">
+
+  <div>
+    <!-- Filter bar -->
+    <form method="GET" class="filter-bar">
+      <select name="category" class="filter-select" onchange="this.form.submit()">
+        <option value="">All Post Types</option>
+        {% for val,label in categories %}
+        <option value="{{ val }}" {% if val == category_filter %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="state" class="filter-select" onchange="this.form.submit()">
+        <option value="">All States</option>
+        {% for state in indian_states %}
+        <option value="{{ state }}" {% if state == state_filter %}selected{% endif %}>{{ state }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="crop" placeholder="Filter by crop..." value="{{ crop_filter }}" class="filter-select" style="min-width:150px;">
+      <button type="submit" class="filter-btn active">🔍 Filter</button>
+      <a href="{% url 'community' %}" class="filter-btn">✕ Clear</a>
+    </form>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div style="background:{% if 'success' in message.tags %}#dcfce7{% else %}#fee2e2{% endif %};color:{% if 'success' in message.tags %}#14532d{% else %}#991b1b{% endif %};padding:1rem 1.25rem;border-radius:12px;margin-bottom:1rem;font-weight:600;">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    {% for post in posts %}
+    <div class="post-card" id="post-{{ post.pk }}">
+      <div class="post-header">
+        <div class="post-avatar {% if post.category == 'success' %}av-success{% elif post.category == 'warning' %}av-warning{% elif post.category == 'question' %}av-question{% elif post.category == 'photo' %}av-photo{% else %}av-tip{% endif %}">
+          {% if post.category == 'success' %}🏆{% elif post.category == 'warning' %}🚨{% elif post.category == 'question' %}❓{% elif post.category == 'photo' %}📷{% else %}💡{% endif %}
+        </div>
+        <div class="post-meta">
+          <div class="post-name">{{ post.name }}</div>
+          <div class="post-state-crop">{% if post.state %}📍 {{ post.state }}{% endif %}{% if post.crop %} · 🌾 {{ post.crop }}{% endif %}</div>
+          <div class="post-time">{{ post.created_at|timesince }} ago</div>
+        </div>
+        <span class="post-badge badge-{{ post.category }}">{{ post.get_category_display }}</span>
+      </div>
+      <div class="post-body">
+        <p class="post-content">{{ post.content }}</p>
+        {% if post.photo %}
+        <div style="margin-bottom:.75rem;">
+          <img src="{{ post.photo.url }}" alt="Farmer photo" style="width:100%;border-radius:12px;max-height:280px;object-fit:cover;">
+          {% if post.photo_description %}
+          <p style="font-size:.78rem;color:#7a5a20;font-style:italic;margin-top:.4rem;">📸 {{ post.photo_description }}</p>
+          {% endif %}
+        </div>
+        {% elif post.photo_description %}
+        <div class="photo-box">
+          <span>📸</span>
+          <p>Photo: {{ post.photo_description }}</p>
+        </div>
+        {% endif %}
+        <div class="post-disclaimer">⚠️ Personal farmer experience. Please verify with your local agriculture expert before applying.</div>
+      </div>
+      <div class="post-footer">
+        <button class="like-btn" onclick="likePost({{ post.pk }}, this)">
+          <span>👍</span> <span class="like-count">{{ post.likes }}</span> Helpful
+        </button>
+        <button class="share-btn" onclick="sharePost('{{ post.name|escapejs }}', '{{ post.content|truncatechars:100|escapejs }}')">🔗 Share</button>
+        {% if post.crop %}<span class="crop-tag">{{ post.crop }}</span>{% endif %}
+      </div>
+
+            <!-- ─── CHAT-STYLE COMMENT SECTION ─── -->
+            <div class="chat-section" id="chat-{{ post.pk }}">
+              <div class="chat-toggle-row">
+                <button class="chat-toggle-btn" onclick="toggleChat('{{ post.pk }}', this)">
+                  <span class="ct-icon">💬</span>
+                  <span class="ct-label">Discussion</span>
+                  <span class="ct-count" id="ccount-{{ post.pk }}">{{ post.top_comments.count }}</span>
+                  <span class="ct-arrow" id="arrow-{{ post.pk }}">▼</span>
+                </button>
+              </div>
+              <div class="chat-body" id="chatbody-{{ post.pk }}" style="display:none;">
+                <!-- Chat messages area -->
+                <div class="chat-msgs" id="msgs-{{ post.pk }}">
+                  {% for comment in post.top_comments %}
+                  <div class="chat-msg{% if comment.is_expert %} msg-expert{% endif %}" id="comment-{{ comment.pk }}">
+                    <div class="chat-avatar {% if comment.is_expert %}av-expert{% else %}av-farmer{% endif %}">
+                      {% if comment.is_expert %}👨‍💼{% else %}{{ comment.name|first|upper }}{% endif %}
+                    </div>
+                    <div class="chat-bubble-wrap">
+                      <div class="chat-sender-row">
+                        <span class="chat-sender-name">{{ comment.name }}</span>
+                        {% if comment.is_expert %}<span class="expert-tag">✅ Expert</span>{% endif %}
+                        {% if comment.state %}<span class="chat-state">📍 {{ comment.state }}</span>{% endif %}
+                        <span class="chat-time">{{ comment.created_at|timesince }} ago</span>
+                      </div>
+                      <div class="chat-bubble">{{ comment.content }}</div>
+                      <div class="chat-actions">
+                        <button class="chat-like-btn" onclick="likeComment({{ comment.pk }}, this)">❤️ <span>{{ comment.likes }}</span></button>
+                        <button class="chat-reply-btn" onclick="toggleReplyBox('{{ post.pk }}','{{ comment.pk }}')">↩ Reply</button>
+                      </div>
+                      <!-- Replies as nested chat -->
+                      {% for reply in comment.replies.all %}
+                      <div class="chat-reply{% if reply.is_expert %} msg-expert{% endif %}">
+                        <div class="chat-avatar sm-av {% if reply.is_expert %}av-expert{% else %}av-farmer{% endif %}">
+                          {% if reply.is_expert %}👨‍💼{% else %}{{ reply.name|first|upper }}{% endif %}
+                        </div>
+                        <div class="chat-bubble-wrap">
+                          <div class="chat-sender-row">
+                            <span class="chat-sender-name">{{ reply.name }}</span>
+                            {% if reply.is_expert %}<span class="expert-tag">✅ Expert</span>{% endif %}
+                            <span class="chat-time">{{ reply.created_at|timesince }} ago</span>
+                          </div>
+                          <div class="chat-bubble reply-bubble">{{ reply.content }}</div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                      <!-- Inline reply box -->
+                      <div id="replybox-{{ post.pk }}-{{ comment.pk }}" style="display:none;margin-top:.5rem;">
+                        <form method="POST" action="{% url 'community_comment' post.pk %}" class="inline-reply-form">
+                          {% csrf_token %}
+                          <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+                          <div class="inline-reply-row">
+                            <input name="name" placeholder="Your name" required style="width:130px;flex-shrink:0;">
+                            <input name="state" placeholder="State" style="width:100px;flex-shrink:0;">
+                            <input type="password" name="expert_code" placeholder="🔑 Expert code" style="width:120px;flex-shrink:0;" title="Experts: enter code for ✅ badge">
+                          </div>
+                          <div class="inline-reply-send">
+                            <textarea name="content" placeholder="Write your reply..." required rows="2" style="resize:none;"></textarea>
+                            <button type="submit" class="send-btn">➤</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  {% empty %}
+                  <div class="chat-empty">
+                    <span>💬</span>
+                    <p>Be the first to comment on this post!</p>
+                  </div>
+                  {% endfor %}
+                </div>
+                <!-- New comment input bar (WhatsApp style) -->
+                <form class="chat-input-bar" method="POST" action="{% url 'community_comment' post.pk %}">
+                  {% csrf_token %}
+                  <div class="cib-top">
+                    <input class="cib-name" name="name" placeholder="Your name *" required>
+                    <input class="cib-state" name="state" placeholder="State">
+                    <input class="cib-code" type="password" name="expert_code" placeholder="🔑 Expert" title="Experts: enter code for ✅ verified badge">
+                  </div>
+                  <div class="cib-bottom">
+                    <textarea class="cib-text" name="content" placeholder="Write a comment, reply, or share your own experience..." required rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button type="submit" class="cib-send">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z" fill="white"/></svg>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:3rem;background:white;border-radius:18px;color:#8a7a6a;">
+      <div style="font-size:3rem;margin-bottom:1rem;">🌾</div>
+      <h3 style="color:#3d1f0a;margin-bottom:0.5rem;">No posts for this filter</h3>
+      <p>Be the first to share your farming experience!</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- POST FORM -->
+    <div class="post-form-card">
+      <h2 class="form-title">🌾 Share Your Experience</h2>
+      <div class="form-disclaimer">
+        <h4>⚠️ Before You Post</h4>
+        <p>Share genuine experiences from your own farm. Your post will be visible to all farmers across India. Always note that results may vary by region, soil, and season.</p>
+      </div>
+      <form method="POST" action="{% url 'community_post' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="cf-group">
+          <label>Your Name (optional)</label>
+          <input type="text" name="name" placeholder="e.g. Ramesh Patel or Anonymous" maxlength="100">
+        </div>
+        <div class="cf-row">
+          <div class="cf-group">
+            <label>Your State</label>
+            <select name="state">
+              <option value="">Select State</option>
+              {% for state in indian_states %}
+              <option value="{{ state }}">{{ state }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="cf-group">
+            <label>Your Crop</label>
+            <input type="text" name="crop" placeholder="e.g. Wheat, Rice">
+          </div>
+        </div>
+        <div class="cf-group">
+          <label>Type of Post</label>
+          <select name="category" required>
+            <option value="question">❓ Question — Need help</option>
+            <option value="tip">💡 Tip — Useful technique</option>
+            <option value="success">🏆 Success Story</option>
+            <option value="warning">🚨 Warning / Alert</option>
+            <option value="photo">📷 Photo Post</option>
+          </select>
+        </div>
+        <div class="cf-group">
+          <label>Your Message (min 20 characters)</label>
+          <textarea name="content" placeholder="Describe your experience, question, or tip. Include crop name, symptoms, location, what you tried, and result..." required minlength="20"></textarea>
+        </div>
+        <div class="cf-group">
+          <label>📸 Upload Photo (optional)</label>
+          <div class="photo-upload-zone" onclick="document.getElementById('photoInput').click()" id="photoZone">
+            <div style="font-size:1.8rem;">📷</div>
+            <p id="photoZoneText">Click to choose photo from your phone or computer</p>
+            <small style="opacity:0.7;">JPG, PNG up to 5MB</small>
+          </div>
+          <input type="file" id="photoInput" name="photo" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)">
+          <img id="photoPreview" style="display:none;width:100%;border-radius:10px;margin-top:.5rem;max-height:200px;object-fit:cover;">
+        </div>
+        <div class="cf-group">
+          <label>Describe Your Photo (optional)</label>
+          <input type="text" name="photo_description" placeholder="e.g. Yellowing leaves on my wheat at 45 days..." maxlength="500">
+        </div>
+        <div style="background:#f0f8f0;border:1px solid #b0d8b0;border-radius:10px;padding:0.7rem;margin-bottom:0.75rem;font-size:0.78rem;color:#1a4a1a;">
+          🗣️ Write in <strong>Hindi, Punjabi, Telugu, Tamil, Kannada, Marathi, Gujarati</strong> or any language — our community understands!
+        </div>
+        <button type="submit" class="submit-btn">🌾 Share with Community</button>
+      </form>
+    </div>
+
+    <!-- ACCESSIBILITY INFO -->
+    <div class="access-card">
+      <h3>♿ Accessibility Features</h3>
+      <div class="access-item"><span style="font-size:1rem;">📱</span><div class="at"><strong>SMS Alerts — No Smartphone Needed</strong>Register at your local KVK — they send SMS weather and price alerts in your regional language.</div></div>
+      <div class="access-item"><span style="font-size:1rem;">🔊</span><div class="at"><strong>Voice/Listen Feature</strong>Click the "🔊 Listen" button in the top bar to hear any page read aloud in Hindi or your language.</div></div>
+      <div class="access-item"><span style="font-size:1rem;">📶</span><div class="at"><strong>Offline Access</strong>Bookmark this site. Your browser saves pages for offline reading, important for villages with poor connectivity.</div></div>
+      <div class="access-item"><span style="font-size:1rem;">🌐</span><div class="at"><strong>Language Translation</strong>Use the language buttons in the top bar to read the entire website in Hindi, Punjabi, Telugu, Tamil, and 10+ languages.</div></div>
+      <div class="access-item"><span style="font-size:1rem;">A+</span><div class="at"><strong>Large Text Mode</strong>Click A+ or A++ in the top bar to increase text size — helpful for older farmers.</div></div>
+    </div>
+
+    <!-- COMMUNITY RULES -->
+    <div class="sidebar-card">
+      <h3>📜 Community Guidelines</h3>
+      <div class="community-rule"><div class="rule-num">1</div><p>Share real experiences from your own farm only. No guessing or unverified advice.</p></div>
+      <div class="community-rule"><div class="rule-num">2</div><p>Always mention your state and crop — conditions vary greatly across India's regions.</p></div>
+      <div class="community-rule"><div class="rule-num">3</div><p>Add a note: <em>"This worked for me — please consult an expert before following."</em></p></div>
+      <div class="community-rule"><div class="rule-num">4</div><p>No selling, spam, or advertising. This is a help community, not a marketplace.</p></div>
+      <div class="community-rule"><div class="rule-num">5</div><p>Be respectful. Every farmer, big or small, deserves dignity and courtesy.</p></div>
+    </div>
+
+    <!-- TOP CONTRIBUTORS -->
+    <div class="sidebar-card">
+      <h3>⭐ Active Contributors</h3>
+      <div class="contributor"><div class="contrib-avatar" style="background:linear-gradient(135deg,#dc2626,#f97316);">B</div><div><div class="contrib-name">Babu Rao</div><div class="contrib-info">Andhra Pradesh · Chilli</div></div><div class="contrib-count">201 👍</div></div>
+      <div class="contributor"><div class="contrib-avatar" style="background:linear-gradient(135deg,#16a34a,#22c55e);">G</div><div><div class="contrib-name">Gurpreet Singh</div><div class="contrib-info">Punjab · Paddy, Wheat</div></div><div class="contrib-count">134 👍</div></div>
+      <div class="contributor"><div class="contrib-avatar" style="background:linear-gradient(135deg,#2563eb,#3b82f6);">S</div><div><div class="contrib-name">Sunita Devi</div><div class="contrib-info">Uttar Pradesh · Wheat</div></div><div class="contrib-count">89 👍</div></div>
+      <div class="contributor"><div class="contrib-avatar" style="background:linear-gradient(135deg,#7c3aed,#a855f7);">S</div><div><div class="contrib-name">Suresh Nair</div><div class="contrib-info">Kerala · Coconut</div></div><div class="contrib-count">63 👍</div></div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="sidebar-card">
+      <h3>🔗 Get Expert Help</h3>
+      <a href="{% url 'ask_expert' %}" style="display:block;background:linear-gradient(135deg,#2d1a08,#5a3a18);color:white;text-decoration:none;padding:10px 14px;border-radius:10px;font-size:0.88rem;font-weight:600;margin-bottom:0.6rem;text-align:center;">🧑‍🌾 Ask Our Expert (Free)</a>
+      <a href="https://kvk.icar.gov.in" target="_blank" style="display:block;border:1.5px solid #e0d8d0;color:#3d1f0a;text-decoration:none;padding:9px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;margin-bottom:0.6rem;text-align:center;">🏫 Find Nearest KVK</a>
+      <a href="{% url 'govt_schemes' %}" style="display:block;border:1.5px solid #e0d8d0;color:#3d1f0a;text-decoration:none;padding:9px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;text-align:center;">🏛️ Check Govt Schemes</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleChat(postId, btn) {
+    var body = document.getElementById('chatbody-' + postId);
+    var arrow = document.getElementById('arrow-' + postId);
+    var isOpen = body.style.display === 'none' || body.style.display === '';
+    body.style.display = isOpen ? 'block' : 'none';
+    if (arrow) { arrow.textContent = isOpen ? '▲' : '▼'; }
+    if (isOpen) {
+        // Scroll chat to bottom
+        var msgs = document.getElementById('msgs-' + postId);
+        if (msgs) setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 50);
+    }
+}
+function toggleReplyBox(postId, commentId) {
+    var id = 'replybox-' + postId + '-' + commentId;
+    var el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function likeComment(commentId, btn) {
+    fetch('/community/comment/' + commentId + '/like/', {
+        method:'POST',
+        headers:{'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''}
+    }).then(function(r){ return r.json(); }).then(function() {
+        var span = btn.querySelector('span');
+        if (span) span.textContent = parseInt(span.textContent||'0') + 1;
+        btn.style.color = '#c8922a';
+    });
+}
+// Auto-open chat if URL hash
+window.addEventListener('load', function() {
+    var hash = location.hash;
+    if (hash && hash.startsWith('#post-')) {
+        var postId = hash.replace('#post-','');
+        var body = document.getElementById('chatbody-' + postId);
+        if (body) {
+            body.style.display = 'block';
+            var arrow = document.getElementById('arrow-' + postId);
+            if (arrow) arrow.textContent = '▲';
+            var msgs = document.getElementById('msgs-' + postId);
+            if (msgs) setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 200);
+        }
+        setTimeout(function(){
+            var el = document.querySelector(hash);
+            if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+        }, 300);
+    }
+});
+</script>
+<script>
+function handlePhotoSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Photo is too large. Please choose a photo under 5MB.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('photoPreview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('photoZoneText').textContent = '✅ ' + file.name + ' selected';
+    document.getElementById('photoZone').style.borderColor = '#22c55e';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function likePost(pk, btn) {
+  try {
+    const r = await fetch(`/community/like/${pk}/`);
+    const data = await r.json();
+    btn.querySelector('.like-count').textContent = data.likes;
+    btn.classList.add('liked');
+    btn.disabled = true;
+  } catch(e) {
+    const countEl = btn.querySelector('.like-count');
+    countEl.textContent = parseInt(countEl.textContent) + 1;
+    btn.classList.add('liked');
+    btn.disabled = true;
+  }
+}
+
+function sharePost(name, content) {
+  if (navigator.share) {
+    navigator.share({ title: `Farmer tip by ${name}`, text: content + '\n\nRead more at Smart Farming Solutions' });
+  } else {
+    navigator.clipboard.writeText(`${name}: "${content}"`).then(() => {
+      alert('Post copied! Share with your farming friends on WhatsApp.');
+    }).catch(() => alert('Copy this manually: ' + content));
+  }
+}
+
+const textarea = document.querySelector('textarea[name="content"]');
+if (textarea) {
+  const counter = document.createElement('div');
+  counter.style.cssText = 'font-size:0.72rem;color:#8a7a6a;text-align:right;margin-top:3px;';
+  textarea.parentNode.appendChild(counter);
+  const update = () => {
+    const len = textarea.value.length;
+    counter.textContent = len + ' characters ' + (len < 20 ? '(min 20 required)' : '✓ Ready to post');
+    counter.style.color = len < 20 ? '#dc2626' : '#16a34a';
+  };
+  textarea.addEventListener('input', update);
+  update();
+}
+</script>
+{% endblock %}

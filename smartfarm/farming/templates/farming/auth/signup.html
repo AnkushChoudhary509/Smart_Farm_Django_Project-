@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — Smart Farming Solutions</title>
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#0a2016 0%,#1a3a2a 40%,#2d6a4f 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.card{background:white;border-radius:24px;padding:2.5rem 2.4rem;width:100%;max-width:460px;box-shadow:0 24px 80px rgba(0,0,0,.4);}
+.logo-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.5rem;}
+.logo-icon{width:48px;height:48px;background:linear-gradient(135deg,#40916c,#d4a017);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.logo-text{font-family:'Playfair Display',serif;font-size:1.15rem;color:#1a3a2a;line-height:1.2;}
+.logo-text small{display:block;font-family:'DM Sans',sans-serif;font-size:.68rem;color:#64748b;font-weight:400;}
+h2{font-family:'Playfair Display',serif;font-size:1.55rem;color:#1a3a2a;margin:.8rem 0 .3rem;}
+.subtitle{color:#64748b;font-size:.88rem;margin-bottom:1.4rem;}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+.field{margin-bottom:1rem;}
+label{display:block;font-size:.82rem;font-weight:600;color:#1a3a2a;margin-bottom:.35rem;}
+.input-wrap{position:relative;}
+.input-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;}
+input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:'DM Sans',sans-serif;background:#f8fafc;outline:none;transition:border .2s,background .2s;}
+input:focus{border-color:#40916c;background:white;}
+
+.error-box{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:.75rem 1rem;color:#dc2626;font-size:.84rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+
+.perks{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1.2rem;}
+.perk{background:#f0fdf4;border-radius:10px;padding:.6rem .85rem;font-size:.75rem;color:#14532d;display:flex;align-items:center;gap:.4rem;}
+
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s,transform .1s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+
+.login-link{text-align:center;font-size:.88rem;color:#64748b;margin-top:1rem;}
+.login-link a{color:#2d6a4f;font-weight:600;text-decoration:none;}
+
+.strength-bar{height:3px;border-radius:2px;background:#e2e8f0;margin-top:.4rem;overflow:hidden;}
+.strength-fill{height:100%;width:0%;transition:width .3s,background .3s;border-radius:2px;}
+.strength-text{font-size:.68rem;color:#94a3b8;margin-top:.2rem;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-row">
+    <div class="logo-icon">🌾</div>
+    <div class="logo-text">Smart Farming Solutions <small>Join 50,000+ Indian Farmers</small></div>
+  </div>
+  <h2>Create Your Account 🌱</h2>
+  <p class="subtitle">Free forever. Get weather alerts, mandi prices, expert advice and more.</p>
+
+  <div class="perks">
+    <div class="perk">⛅ Live Weather</div>
+    <div class="perk">📊 Mandi Prices</div>
+    <div class="perk">👨‍🌾 Expert Chat</div>
+    <div class="perk">📱 SMS Alerts</div>
+  </div>
+
+  {% if error %}
+  <div class="error-box">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="row2">
+      <div class="field">
+        <label>First Name</label>
+        <div class="input-wrap"><span>👤</span>
+          <input type="text" name="first_name" placeholder="Ramesh" maxlength="50">
+        </div>
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <div class="input-wrap"><span>👤</span>
+          <input type="text" name="last_name" placeholder="Patel" maxlength="50">
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Username <span style="color:#dc2626">*</span></label>
+      <div class="input-wrap"><span>🏷️</span>
+        <input type="text" name="username" placeholder="e.g. ramesh_patel" autocomplete="username" required maxlength="50" pattern="[a-zA-Z0-9_@.+-]+" title="Letters, numbers and @/./+/-/_ only">
+      </div>
+    </div>
+    <div class="field">
+      <label>Email (optional)</label>
+      <div class="input-wrap"><span>📧</span>
+        <input type="email" name="email" placeholder="your@email.com" maxlength="100">
+      </div>
+    </div>
+    <div class="field">
+      <label>Password <span style="color:#dc2626">*</span></label>
+      <div class="input-wrap"><span>🔒</span>
+        <input type="password" name="password" id="pwd" placeholder="Min 6 characters" required minlength="6" oninput="checkStrength(this.value)">
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+      <div class="strength-text" id="strengthText">Enter a password</div>
+    </div>
+    <div class="field">
+      <label>Confirm Password <span style="color:#dc2626">*</span></label>
+      <div class="input-wrap"><span>🔐</span>
+        <input type="password" name="password2" placeholder="Repeat password" required minlength="6">
+      </div>
+    </div>
+    <button type="submit" class="btn-primary">🌾 Create Free Account</button>
+  </form>
+
+  <div class="login-link">Already have an account? <a href="{% url 'login' %}">Sign in →</a></div>
+</div>
+<script>
+function checkStrength(p){
+  const fill=document.getElementById('strengthFill');
+  const txt=document.getElementById('strengthText');
+  let score=0;
+  if(p.length>=6) score++;
+  if(p.length>=10) score++;
+  if(/[A-Z]/.test(p)) score++;
+  if(/[0-9]/.test(p)) score++;
+  if(/[^a-zA-Z0-9]/.test(p)) score++;
+  const pct=['0%','25%','45%','65%','85%','100%'][score];
+  const clr=['#e2e8f0','#ef4444','#f97316','#eab308','#22c55e','#16a34a'][score];
+  const lbl=['','Weak','Fair','Good','Strong','Very Strong'][score];
+  fill.style.width=pct; fill.style.background=clr; txt.textContent=lbl;
+}
+</script>
+</body>
+</html>

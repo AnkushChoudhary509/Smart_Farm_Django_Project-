@@ -1,0 +1,451 @@
+{% extends 'farming/base.html' %}
+{% block title %}Smart Farming Solutions — Protect Your Crops{% endblock %}
+{% block extra_css %}
+<style>
+
+.hero{min-height:92vh;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.hero-sky{position:absolute;inset:0;background:linear-gradient(180deg,#0e1e3a 0%,#1a3d6b 18%,#2e6ea8 36%,#4a90c8 50%,#6ab0d8 62%,#a8d4a0 74%,#5a9e4a 83%,#2d6a2a 100%);}
+.hero-sky::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 78% 22%,rgba(255,195,50,.35) 0%,rgba(255,140,0,.15) 30%,transparent 65%);}
+.sun-wrap{position:absolute;top:7%;right:13%;width:88px;height:88px;animation:sunrise 3s ease-out both;}
+@keyframes sunrise{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sun-orb{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff8c0,#ffe066 40%,#ffb700);box-shadow:0 0 0 12px rgba(255,215,50,.14),0 0 60px 20px rgba(255,200,0,.32);animation:sunpulse 4s ease-in-out 3s infinite;}
+@keyframes sunpulse{0%,100%{box-shadow:0 0 0 12px rgba(255,215,50,.14),0 0 60px 20px rgba(255,200,0,.32)}50%{box-shadow:0 0 0 24px rgba(255,215,50,.2),0 0 90px 35px rgba(255,200,0,.44)}}
+.sun-rays{position:absolute;inset:-44px;border-radius:50%;animation:rayspin 26s linear infinite;background:conic-gradient(rgba(255,215,0,.07) 0deg,transparent 14deg,rgba(255,215,0,.05) 28deg,transparent 42deg,rgba(255,215,0,.07) 56deg,transparent 70deg,rgba(255,215,0,.05) 84deg,transparent 98deg,rgba(255,215,0,.07) 112deg,transparent 126deg,rgba(255,215,0,.05) 140deg,transparent 154deg,rgba(255,215,0,.07) 168deg,transparent 182deg,rgba(255,215,0,.05) 196deg,transparent 210deg,rgba(255,215,0,.07) 224deg,transparent 238deg,rgba(255,215,0,.05) 252deg,transparent 266deg,rgba(255,215,0,.07) 280deg,transparent 294deg,rgba(255,215,0,.05) 308deg,transparent 322deg,rgba(255,215,0,.07) 336deg,transparent 350deg,rgba(255,215,0,.05) 360deg);}
+@keyframes rayspin{to{transform:rotate(360deg)}}
+.cloud{position:absolute;border-radius:50px;background:rgba(255,255,255,.88);filter:blur(1px);}
+.cloud::before,.cloud::after{content:'';position:absolute;background:rgba(255,255,255,.92);border-radius:50%;}
+.c1{width:130px;height:38px;top:11%;left:-150px;animation:cfloat 40s linear infinite;box-shadow:0 4px 18px rgba(255,255,255,.25);}
+.c1::before{width:65px;height:56px;top:-28px;left:18px;}.c1::after{width:50px;height:42px;top:-20px;left:58px;}
+.c2{width:100px;height:28px;top:19%;left:-130px;animation:cfloat 56s linear 14s infinite;opacity:.7;}
+.c2::before{width:50px;height:42px;top:-20px;left:13px;}.c2::after{width:38px;height:30px;top:-14px;left:46px;}
+.c3{width:160px;height:44px;top:7%;left:-190px;animation:cfloat 47s linear 7s infinite;opacity:.55;}
+.c3::before{width:80px;height:62px;top:-32px;left:26px;}.c3::after{width:60px;height:48px;top:-22px;left:74px;}
+@keyframes cfloat{to{left:110%}}
+.hills{position:absolute;bottom:28%;left:0;right:0;height:210px;}
+.hill{position:absolute;border-radius:50% 50% 0 0;bottom:0;}
+.h1{width:420px;height:170px;background:#1a3d20;left:-50px;}
+.h2{width:380px;height:148px;background:#1e4a25;left:200px;}
+.h3{width:450px;height:180px;background:#163318;right:-70px;}
+.h4{width:280px;height:124px;background:#224d28;right:160px;}
+.field{position:absolute;bottom:0;left:0;right:0;height:30%;background:linear-gradient(180deg,#3a7a2a 0%,#2d6020 30%,#1e4a15 70%,#162e0e 100%);}
+.field::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0,transparent 16px,rgba(0,0,0,.2) 16px,rgba(0,0,0,.2) 18px,transparent 18px,transparent 34px);}
+.wheat-belt{position:absolute;bottom:28%;left:0;right:0;height:100px;display:flex;align-items:flex-end;overflow:hidden;}
+.ws{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0;transform-origin:bottom center;animation:wsway 2.5s ease-in-out infinite;}
+.ws:nth-child(2n){animation-delay:.4s}.ws:nth-child(3n){animation-delay:.8s}.ws:nth-child(4n){animation-delay:1.2s}.ws:nth-child(5n){animation-delay:.6s}.ws:nth-child(6n){animation-delay:1.5s}.ws:nth-child(7n){animation-delay:1s}
+@keyframes wsway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+.wh{width:9px;height:24px;background:linear-gradient(180deg,#f0d060,#c8a040,#a07020);border-radius:4px 4px 2px 2px;position:relative;}
+.wh::before,.wh::after{content:'';position:absolute;width:6px;height:12px;background:#d4a830;border-radius:3px;top:4px;}
+.wh::before{left:-5px;transform:rotate(-28deg)}.wh::after{right:-5px;transform:rotate(28deg)}
+.wstm{width:2px;height:60px;background:linear-gradient(180deg,#8ab040,#6a9030,#4a7020);}
+.tractor-wrap{position:absolute;bottom:calc(28% - 1px);animation:tractorgo 20s linear infinite;}
+.wheel-rear{animation:wheelspin 1.4s linear infinite;transform-box:fill-box;}
+.wheel-front{animation:wheelspin 0.9s linear infinite;transform-box:fill-box;}
+@keyframes wheelspin{to{transform:rotate(360deg)}}
+@keyframes tractorgo{0%{left:-230px}100%{left:108%}}
+.exhaust{position:absolute;top:-22px;left:22px;}
+.ep{position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(90,90,90,.7);animation:puffgo 1.4s ease-out infinite;}
+.ep:nth-child(2){animation-delay:.48s;left:6px}.ep:nth-child(3){animation-delay:.96s;left:-4px}
+@keyframes puffgo{0%{transform:translateY(0) scale(1);opacity:.7}100%{transform:translateY(-32px) scale(2.8);opacity:0}}
+.dirt{position:absolute;bottom:0;right:-8px;}
+.dp{position:absolute;width:5px;height:5px;border-radius:50%;animation:dirtgo .65s ease-out infinite;}
+.dp:nth-child(1){background:#6b4820}.dp:nth-child(2){background:#5a3a10;animation-delay:.22s}.dp:nth-child(3){background:#7a5428;animation-delay:.44s}
+@keyframes dirtgo{0%{transform:translate(0,0);opacity:1}100%{transform:translate(22px,-20px) rotate(200deg);opacity:0}}
+.farmer1{position:absolute;bottom:28%;left:58%;animation:f1walk 16s linear 4s infinite;}
+@keyframes f1walk{0%{transform:translateX(0) scaleX(1)}45%{transform:translateX(200px) scaleX(1)}50%{transform:translateX(200px) scaleX(-1)}95%{transform:translateX(0px) scaleX(-1)}100%{transform:translateX(0px) scaleX(1)}}
+.farmer2{position:absolute;bottom:28%;right:10%;animation:f2rock 1.8s ease-in-out infinite;}
+@keyframes f2rock{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+.bird{position:absolute;animation:birdfly linear infinite;font-size:1.1rem;}
+.b1{top:14%;animation-duration:18s}.b2{top:10%;animation-duration:24s;animation-delay:7s}.b3{top:17%;animation-duration:21s;animation-delay:13s}
+@keyframes birdfly{0%{left:-4%}100%{left:108%}}
+.hero-content{position:relative;z-index:10;max-width:1300px;margin:0 auto;padding:3.5rem 2rem 10rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;width:100%;}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,220,50,.18);border:1px solid rgba(255,220,50,.4);color:#f4c842;padding:6px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:1.5rem;}
+.hero h1{font-family:'Playfair Display',serif;color:white;font-size:clamp(2rem,5vw,3.8rem);line-height:1.1;margin-bottom:1.5rem;text-shadow:0 2px 20px rgba(0,0,0,.4);}
+.hero h1 em{font-style:normal;color:#74c69d;}
+.hero-sub{color:rgba(255,255,255,.78);font-size:1.05rem;line-height:1.8;margin-bottom:2rem;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.stat-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:1.5rem;text-align:center;backdrop-filter:blur(12px);transition:all .3s;text-decoration:none;}
+.stat-card:hover{background:rgba(255,255,255,.16);transform:translateY(-5px);border-color:rgba(255,255,255,.3);}
+.stat-icon{font-size:2.4rem;margin-bottom:.5rem;}
+.stat-number{font-family:'Playfair Display',serif;font-size:2.4rem;color:white;font-weight:700;}
+.stat-label{color:rgba(255,255,255,.65);font-size:.82rem;margin-top:.25rem;}
+.scene-caption{position:absolute;z-index:20;bottom:calc(30% + 112px);left:50%;transform:translateX(-50%);color:rgba(255,255,255,.65);font-size:.72rem;background:rgba(0,0,0,.3);padding:3px 12px;border-radius:10px;backdrop-filter:blur(4px);white-space:nowrap;pointer-events:none;}
+section{padding:5rem 2rem;}
+.section-title{text-align:center;margin-bottom:3rem;}
+.section-title h2{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3vw,2.5rem);color:var(--green-deep);margin-bottom:.5rem;}
+.section-title p{color:#6b8c6b;font-size:1rem;}
+.categories-grid{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;}
+.category-card{border-radius:20px;padding:2.5rem;text-decoration:none;transition:all .3s;position:relative;overflow:hidden;}
+.category-card::before{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);transition:all .4s;}
+.category-card:hover::before{transform:scale(1.5)}.category-card:hover{transform:translateY(-6px);}
+.category-card.wildlife{background:linear-gradient(135deg,#8b1a1a,#c44b4b);}
+.category-card.pest{background:linear-gradient(135deg,#7a4a00,#c47a1a);}
+.category-card.weed{background:linear-gradient(135deg,#1a4a1a,#3a7a3a);}
+.cat-icon{font-size:3rem;margin-bottom:1rem;display:block;}
+.category-card h3{color:white;font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:.5rem;}
+.category-card p{color:rgba(255,255,255,.8);font-size:.9rem;line-height:1.6;margin-bottom:1rem;}
+.cat-count{color:rgba(255,255,255,.6);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;}
+.tips-grid{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+.tip-card{background:white;border-radius:16px;padding:1.75rem;box-shadow:0 2px 12px rgba(0,0,0,.06);border-left:4px solid var(--green-bright);transition:all .3s;}
+.tip-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.tip-season{color:var(--gold);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;}
+.tip-card h3{font-size:1rem;color:var(--green-deep);margin-bottom:.75rem;line-height:1.4;}
+.tip-card p{color:#5a7a5a;font-size:.88rem;line-height:1.7;}
+.tip-crop{margin-top:1rem;font-size:.8rem;color:#888;font-weight:500;}
+.how-section{background:var(--green-deep);}
+.how-section .section-title h2{color:white;}
+.how-section .section-title p{color:rgba(255,255,255,.6);}
+.steps-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;}
+.step{text-align:center;color:white;}
+.step-num{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(116,198,157,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green-light);}
+.step h4{font-size:.95rem;margin-bottom:.5rem;}
+.step p{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;}
+.cta-section{background:linear-gradient(135deg,var(--gold) 0%,#e8b020 100%);text-align:center;padding:4rem 2rem;}
+.cta-section h2{font-family:'Playfair Display',serif;font-size:2rem;color:var(--green-deep);margin-bottom:.75rem;}
+.cta-section p{color:rgba(26,58,42,.75);margin-bottom:2rem;}
+.tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;}
+.tool-card{border-radius:20px;padding:2rem;transition:transform .2s,box-shadow .2s;text-decoration:none;display:block;}
+.tool-card:hover{transform:translateY(-6px);}
+.wheel-rear,.wheel-front{animation:wheelspin 1.2s linear infinite;transform-box:fill-box;transform-origin:center;}
+.wheel-front{animation-duration:.9s;}
+@keyframes wheelspin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.hero-content{grid-template-columns:1fr;gap:3rem}.categories-grid,.tips-grid,.steps-grid,.tools-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.categories-grid,.tips-grid,.steps-grid,.tools-grid{grid-template-columns:1fr}.hero-stats{grid-template-columns:1fr 1fr}}
+
+</style>
+{% endblock %}
+{% block content %}
+<!-- ANIMATED HERO -->
+<section class="hero">
+  <div class="hero-sky"></div>
+  <div class="sun-wrap"><div class="sun-rays"></div><div class="sun-orb"></div></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <div class="bird b1">🐦</div>
+  <div class="bird b2">🐦</div>
+  <div class="bird b3">🕊️</div>
+  <div class="hills">
+    <div class="hill h1"></div><div class="hill h2"></div>
+    <div class="hill h3"></div><div class="hill h4"></div>
+  </div>
+  <div class="wheat-belt"><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div><div class="ws"><div class="wh"></div><div class="wstm"></div></div></div>
+  <div class="field"></div>
+
+  <!-- ANIMATED TRACTOR — Ultra-Realistic Mahindra Style SVG -->
+  <div class="tractor-wrap">
+<svg viewBox="0 0 380 175" width="380" height="175" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Radial gradients for wheels -->
+    <radialGradient id="rw" cx="42%" cy="38%" r="56%">
+      <stop offset="0%" stop-color="#555"/>
+      <stop offset="60%" stop-color="#222"/>
+      <stop offset="100%" stop-color="#111"/>
+    </radialGradient>
+    <radialGradient id="fw" cx="42%" cy="38%" r="56%">
+      <stop offset="0%" stop-color="#555"/>
+      <stop offset="60%" stop-color="#222"/>
+      <stop offset="100%" stop-color="#111"/>
+    </radialGradient>
+    <radialGradient id="rh" cx="35%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="#e8401a"/>
+      <stop offset="50%" stop-color="#cc2200"/>
+      <stop offset="100%" stop-color="#961800"/>
+    </radialGradient>
+    <radialGradient id="wg" cx="30%" cy="25%" r="65%">
+      <stop offset="0%" stop-color="#c8eeff" stop-opacity=".92"/>
+      <stop offset="100%" stop-color="#5a9ec8" stop-opacity=".78"/>
+    </radialGradient>
+    <radialGradient id="sun_hl" cx="30%" cy="25%" r="65%">
+      <stop offset="0%" stop-color="#ffcc44"/>
+      <stop offset="100%" stop-color="#cc8800"/>
+    </radialGradient>
+    <linearGradient id="bonnet" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8320a"/>
+      <stop offset="40%" stop-color="#cc2200"/>
+      <stop offset="100%" stop-color="#961400"/>
+    </linearGradient>
+    <linearGradient id="cab_body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d43518"/>
+      <stop offset="100%" stop-color="#b02000"/>
+    </linearGradient>
+    <linearGradient id="chassis" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#222"/>
+      <stop offset="100%" stop-color="#111"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.35)"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Exhaust smoke animation -->
+    <style>
+      .tyre-spin-r { animation: tspin 1.1s linear infinite; transform-origin: 105px 128px; }
+      .tyre-spin-f { animation: tspin 1.5s linear infinite; transform-origin: 296px 136px; }
+      @keyframes tspin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+      .smoke1 { animation: smk1 2.2s ease-out infinite; }
+      .smoke2 { animation: smk2 2.2s ease-out infinite .5s; }
+      .smoke3 { animation: smk3 2.2s ease-out infinite 1s; }
+      @keyframes smk1 {
+        0%  { transform:translate(0,0) scale(0.4); opacity:.85; }
+        60% { transform:translate(-8px,-32px) scale(1.2); opacity:.4; }
+        100%{ transform:translate(-14px,-58px) scale(1.8); opacity:0; }
+      }
+      @keyframes smk2 {
+        0%  { transform:translate(0,0) scale(0.5); opacity:.75; }
+        60% { transform:translate(-6px,-28px) scale(1.1); opacity:.35; }
+        100%{ transform:translate(-12px,-52px) scale(1.6); opacity:0; }
+      }
+      @keyframes smk3 {
+        0%  { transform:translate(0,0) scale(0.3); opacity:.65; }
+        60% { transform:translate(-10px,-24px) scale(1.0); opacity:.25; }
+        100%{ transform:translate(-16px,-46px) scale(1.5); opacity:0; }
+      }
+      .headlight-glow { animation: lglow 2s ease-in-out infinite alternate; }
+      @keyframes lglow {
+        from { opacity:.25; }
+        to   { opacity:.5; }
+      }
+    </style>
+  </defs>
+
+  <!-- Ground shadow -->
+  <ellipse cx="188" cy="164" rx="155" ry="9" fill="rgba(0,0,0,0.25)"/>
+
+  <!-- ══ PLOUGH ASSEMBLY (left/rear) ══ -->
+  <g filter="url(#shadow)">
+    <rect x="2" y="106" width="46" height="6" rx="2" fill="#6B4F10"/>
+    <rect x="4" y="104" width="42" height="3" rx="1" fill="#8B6520" opacity=".6"/>
+    <!-- 4 tines with glint -->
+    <polygon points="7,112 3,132 16,127" fill="#D4A428"/>
+    <polygon points="7,112 4,130 14,126" fill="#F0C050" opacity=".5"/>
+    <polygon points="19,112 15,132 28,127" fill="#D4A428"/>
+    <polygon points="19,112 16,130 26,126" fill="#F0C050" opacity=".5"/>
+    <polygon points="31,112 27,132 40,127" fill="#D4A428"/>
+    <polygon points="31,112 28,130 38,126" fill="#F0C050" opacity=".5"/>
+    <polygon points="43,112 39,132 52,127" fill="#D4A428"/>
+    <polygon points="43,112 40,130 50,126" fill="#F0C050" opacity=".5"/>
+    <!-- Linkage -->
+    <rect x="47" y="101" width="6" height="22" rx="1.5" fill="#555"/>
+    <rect x="44" y="99" width="12" height="4" rx="1" fill="#666"/>
+    <rect x="45" y="96" width="10" height="5" rx="1" fill="#444"/>
+    <!-- Soil disturbance -->
+    <ellipse cx="20" cy="133" rx="18" ry="4" fill="#5a3a10" opacity=".35"/>
+  </g>
+
+  <!-- ══ MAIN CHASSIS ══ -->
+  <rect x="52" y="96" width="230" height="28" rx="5" fill="url(#chassis)" filter="url(#shadow)"/>
+  <rect x="58" y="118" width="218" height="8" rx="3" fill="#0a0a0a"/>
+  <!-- Chassis detail ribs -->
+  <rect x="80"  y="100" width="3" height="20" rx="1" fill="#333"/>
+  <rect x="130" y="100" width="3" height="20" rx="1" fill="#333"/>
+  <rect x="180" y="100" width="3" height="20" rx="1" fill="#333"/>
+  <rect x="230" y="100" width="3" height="20" rx="1" fill="#333"/>
+
+  <!-- ══ THREE-POINT HITCH ══ -->
+  <rect x="46" y="102" width="8" height="14" rx="1.5" fill="#555"/>
+  <rect x="48" y="96" width="6" height="10" rx="1" fill="#666"/>
+  <circle cx="50" cy="96" r="3" fill="#777"/>
+
+  <!-- ══ REAR MUDGUARD ══ -->
+  <path d="M 52 93 Q 46 118 60 148 Q 78 165 106 166 Q 132 166 148 152 Q 164 137 164 120"
+        fill="#cc2200" stroke="#aa1800" stroke-width="1.5" filter="url(#shadow)"/>
+  <path d="M 54 95 Q 48 118 61 146" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ══ FRONT MUDGUARD ══ -->
+  <path d="M 255 88 Q 252 108 258 130 Q 266 148 283 152 Q 298 154 308 143 Q 322 128 322 114"
+        fill="#cc2200" stroke="#aa1800" stroke-width="1.5"/>
+
+  <!-- ══ ENGINE BONNET ══ -->
+  <!-- Bonnet body -->
+  <rect x="228" y="50" width="108" height="72" rx="6" fill="url(#bonnet)" filter="url(#shadow)"/>
+  <!-- Bonnet top slope -->
+  <polygon points="228,50 336,50 336,68 228,60" fill="#e8401a"/>
+  <!-- Top highlight stripe -->
+  <rect x="230" y="52" width="104" height="5" rx="2" fill="rgba(255,255,255,.12)"/>
+  <!-- Bonnet vent lines -->
+  <line x1="248" y1="64" x2="334" y2="64" stroke="#aa1800" stroke-width="1.5" opacity=".65"/>
+  <line x1="248" y1="74" x2="334" y2="74" stroke="#aa1800" stroke-width="1.5" opacity=".65"/>
+  <line x1="248" y1="84" x2="334" y2="84" stroke="#aa1800" stroke-width="1.5" opacity=".65"/>
+  <line x1="248" y1="94" x2="334" y2="94" stroke="#aa1800" stroke-width="1.5" opacity=".65"/>
+  <line x1="248" y1="104" x2="334" y2="104" stroke="#aa1800" stroke-width="1.5" opacity=".65"/>
+  <!-- Bonnet badge / emblem -->
+  <circle cx="272" cy="58" r="9" fill="url(#sun_hl)" stroke="#aa7700" stroke-width="1"/>
+  <text x="272" y="63" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">M</text>
+  <!-- Front grille -->
+  <rect x="330" y="53" width="12" height="66" rx="2" fill="#1a1a1a"/>
+  <rect x="331" y="58" width="10" height="7" rx="1" fill="#333"/>
+  <rect x="331" y="69" width="10" height="7" rx="1" fill="#333"/>
+  <rect x="331" y="80" width="10" height="7" rx="1" fill="#333"/>
+  <rect x="331" y="91" width="10" height="7" rx="1" fill="#333"/>
+  <rect x="331" y="102" width="10" height="7" rx="1" fill="#333"/>
+  <!-- Grille chrome strip -->
+  <rect x="329" y="53" width="2" height="66" fill="#666"/>
+  <!-- Headlight assembly -->
+  <rect x="339" y="62" width="18" height="16" rx="3" fill="#222"/>
+  <ellipse cx="348" cy="70" rx="7.5" ry="6.5" fill="#fffde0" opacity=".96"/>
+  <ellipse cx="348" cy="70" rx="5" ry="4.5" fill="#fff9c0"/>
+  <!-- Headlight beam glow -->
+  <ellipse cx="348" cy="70" rx="11" ry="10" fill="rgba(255,253,180,.22)" class="headlight-glow"/>
+  <!-- Lower fog light -->
+  <ellipse cx="348" cy="90" rx="4" ry="3" fill="#ffe060" opacity=".8"/>
+  <ellipse cx="348" cy="90" rx="5" ry="4" fill="rgba(255,220,60,.15)" class="headlight-glow"/>
+  <!-- Bumper bar -->
+  <rect x="336" y="110" width="22" height="6" rx="2" fill="#333"/>
+  <rect x="338" y="111" width="18" height="4" rx="1" fill="#555"/>
+
+  <!-- ══ EXHAUST PIPE ══ -->
+  <rect x="238" y="12" width="11" height="42" rx="4" fill="#3a3a3a"/>
+  <ellipse cx="243" cy="12" rx="7" ry="4" fill="#2a2a2a"/>
+  <rect x="236" y="10" width="15" height="6" rx="2" fill="#444"/>
+  <ellipse cx="243" cy="9" rx="8" ry="3" fill="#1a1a1a"/>
+  <!-- Stack cap -->
+  <rect x="234" y="8" width="18" height="4" rx="2" fill="#222"/>
+  <rect x="237" y="6" width="12" height="3" rx="1.5" fill="#333"/>
+  <!-- Smoke puffs -->
+  <circle class="smoke1" cx="243" cy="8" r="7" fill="#7a7a7a" opacity=".8"/>
+  <circle class="smoke2" cx="243" cy="8" r="6" fill="#8a8a8a" opacity=".65"/>
+  <circle class="smoke3" cx="243" cy="8" r="5" fill="#9a9a9a" opacity=".5"/>
+
+  <!-- ══ CAB STRUCTURE ══ -->
+  <!-- Cab rear post -->
+  <rect x="108" y="20" width="13" height="84" rx="2" fill="#b02000"/>
+  <!-- Cab body -->
+  <rect x="118" y="26" width="114" height="80" rx="7" fill="url(#cab_body)" filter="url(#shadow)"/>
+  <!-- Cab roof yellow (Indian tractor style) -->
+  <rect x="102" y="18" width="138" height="17" rx="5" fill="#e6b800"/>
+  <rect x="104" y="19" width="134" height="9" rx="3.5" fill="#f4cc00"/>
+  <rect x="106" y="20" width="130" height="4" rx="2" fill="rgba(255,255,255,.22)"/>
+  <!-- Roof drip rail -->
+  <rect x="102" y="34" width="138" height="3" rx="1" fill="#cc9900" opacity=".5"/>
+  <!-- Cab side highlight -->
+  <rect x="120" y="28" width="110" height="5" rx="2" fill="rgba(255,255,255,.1)"/>
+  <!-- Front windshield (large + crystal clear) -->
+  <rect x="210" y="28" width="26" height="48" rx="5" fill="url(#wg)" opacity=".9"/>
+  <line x1="213" y1="31" x2="222" y2="46" stroke="white" stroke-width="1.5" opacity=".45" stroke-linecap="round"/>
+  <line x1="217" y1="28" x2="232" y2="44" stroke="white" stroke-width=".8" opacity=".2" stroke-linecap="round"/>
+  <!-- Side window -->
+  <rect x="126" y="32" width="44" height="30" rx="4" fill="url(#wg)" opacity=".82"/>
+  <line x1="128" y1="35" x2="137" y2="48" stroke="white" stroke-width="1.5" opacity=".4" stroke-linecap="round"/>
+  <!-- Rear small window -->
+  <rect x="118" y="32" width="12" height="22" rx="2.5" fill="url(#wg)" opacity=".6"/>
+  <!-- Door panel seam -->
+  <line x1="172" y1="26" x2="172" y2="106" stroke="#a01c0c" stroke-width="2" opacity=".55"/>
+  <!-- Door handle -->
+  <rect x="177" y="70" width="16" height="4" rx="2" fill="#aaa"/>
+  <circle cx="193" cy="72" r="3.5" fill="#888"/>
+  <circle cx="193" cy="72" r="2" fill="#aaa"/>
+  <!-- Steps (side access) -->
+  <rect x="120" y="100" width="28" height="7" rx="1.5" fill="#2a2a2a"/>
+  <rect x="122" y="92" width="24" height="7" rx="1.5" fill="#333"/>
+  <rect x="124" y="84" width="20" height="7" rx="1.5" fill="#3a3a3a"/>
+  <!-- Cabin pillar B -->
+  <rect x="175" y="26" width="8" height="80" rx="1.5" fill="#b02000" opacity=".4"/>
+  <!-- Tail light -->
+  <ellipse cx="112" cy="76" rx="5.5" ry="4.5" fill="#ff4400" opacity=".92"/>
+  <ellipse cx="112" cy="76" rx="3.5" ry="3" fill="#ff6633"/>
+  <ellipse cx="112" cy="76" rx="7" ry="6" fill="rgba(255,80,0,.18)"/>
+
+  <!-- ══ DRIVER IN CAB ══ -->
+  <!-- Torso with green shirt -->
+  <rect x="152" y="46" width="25" height="34" rx="5" fill="#1a5a2a" opacity=".9"/>
+  <!-- Head and turban (orange, traditional) -->
+  <circle cx="162" cy="38" r="11" fill="#f5a46e" opacity=".92"/>
+  <!-- Turban wrap -->
+  <path d="M148,36 Q162,20 176,36" fill="#e05500" stroke="#c04400" stroke-width=".5"/>
+  <ellipse cx="162" cy="31" rx="13" ry="6" fill="#ff8800" opacity=".88"/>
+  <path d="M150,34 Q162,26 174,34" fill="none" stroke="rgba(255,160,50,.5)" stroke-width="1.5"/>
+  <!-- Turban knot side -->
+  <ellipse cx="175" cy="32" rx="5" ry="4" fill="#e06000" opacity=".7"/>
+  <!-- Face feature dots -->
+  <circle cx="157" cy="38" r="1.5" fill="#3a2010" opacity=".7"/>
+  <circle cx="168" cy="38" r="1.5" fill="#3a2010" opacity=".7"/>
+  <!-- Arm on steering -->
+  <line x1="162" y1="62" x2="198" y2="54" stroke="#f5a46e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="162" y1="62" x2="150" y2="58" stroke="#1a5a2a" stroke-width="4" stroke-linecap="round"/>
+  <!-- Steering wheel -->
+  <circle cx="200" cy="53" r="10" fill="none" stroke="#444" stroke-width="3.5"/>
+  <circle cx="200" cy="53" r="3.5" fill="#333"/>
+  <line x1="200" y1="43" x2="200" y2="63" stroke="#444" stroke-width="2.5"/>
+  <line x1="190" y1="53" x2="210" y2="53" stroke="#444" stroke-width="2.5"/>
+
+  <!-- ══ FUEL TANK (side) ══ -->
+  <rect x="228" y="76" width="20" height="28" rx="4" fill="#9a1808"/>
+  <rect x="230" y="78" width="16" height="6" rx="1.5" fill="rgba(255,255,255,.1)"/>
+  <circle cx="238" cy="92" r="5" fill="#c8c8c8" stroke="#aaa" stroke-width="1"/>
+  <circle cx="238" cy="92" r="2.5" fill="#888"/>
+  <!-- Fuel cap -->
+  <rect x="234" y="86" width="8" height="4" rx="1" fill="#bbb"/>
+
+  <!-- ══ REAR WHEEL (big, highly detailed) ══ -->
+  <g class="tyre-spin-r">
+    <!-- Outer tyre with tread pattern -->
+    <circle cx="105" cy="128" r="55" fill="url(#rw)"/>
+    <!-- Tread blocks (outer ring) - 12 pairs -->
+    <circle cx="105" cy="128" r="55" fill="none" stroke="#1a1a1a" stroke-width="8" stroke-dasharray="20 8.5"/>
+    <circle cx="105" cy="128" r="50" fill="#1e1e1e"/>
+    <!-- Tread grooves -->
+    <circle cx="105" cy="128" r="49" fill="none" stroke="#2a2a2a" stroke-width="3"/>
+    <circle cx="105" cy="128" r="46" fill="#222"/>
+    <!-- Wheel disc (red hub area) -->
+    <circle cx="105" cy="128" r="40" fill="url(#rh)"/>
+    <!-- 8 spokes -->
+    <line x1="105" y1="88" x2="105" y2="168" stroke="#cc1e00" stroke-width="5.5" opacity=".85"/>
+    <line x1="65" y1="128" x2="145" y2="128" stroke="#cc1e00" stroke-width="5.5" opacity=".85"/>
+    <line x1="77" y1="100" x2="133" y2="156" stroke="#cc1e00" stroke-width="4.5" opacity=".75"/>
+    <line x1="133" y1="100" x2="77" y2="156" stroke="#cc1e00" stroke-width="4.5" opacity=".75"/>
+    <!-- Inner decorative ring -->
+    <circle cx="105" cy="128" r="26" fill="#cc2200" stroke="#aa1800" stroke-width="2"/>
+    <circle cx="105" cy="128" r="21" fill="#d43518"/>
+    <!-- Hub cap (white center) -->
+    <circle cx="105" cy="128" r="13" fill="#f0f0f0" stroke="#ddd" stroke-width="1"/>
+    <circle cx="105" cy="128" r="8"  fill="white"/>
+    <circle cx="105" cy="128" r="5"  fill="#cc2200"/>
+    <!-- 6 lug bolts -->
+    <circle cx="105" cy="115" r="2.5" fill="#777"/>
+    <circle cx="116" cy="120" r="2.5" fill="#777"/>
+    <circle cx="116" cy="136" r="2.5" fill="#777"/>
+    <circle cx="105" cy="141" r="2.5" fill="#777"/>
+    <circle cx="94"  cy="136" r="2.5" fill="#777"/>
+    <circle cx="94"  cy="120" r="2.5" fill="#777"/>
+    <!-- Tread lugs (angled ridges on outer tyre) -->
+    <circle cx="105" cy="128" r="54" fill="none" stroke="#333" stroke-width="4" stroke-dasharray="6 22.3" stroke-dashoffset="0" opacity=".7"/>
+  </g>
+
+  <!-- ══ FRONT WHEEL (detailed) ══ -->
+  <g class="tyre-spin-f">
+    <circle cx="296" cy="136" r="30" fill="url(#fw)"/>
+    <circle cx="296" cy="136" r="30" fill="none" stroke="#1a1a1a" stroke-width="5" stroke-dasharray="12 6"/>
+    <circle cx="296" cy="136" r="26" fill="#1e1e1e"/>
+    <circle cx="296" cy="136" r="24" fill="none" stroke="#2a2a2a" stroke-width="2"/>
+    <circle cx="296" cy="136" r="22" fill="url(#rh)"/>
+    <!-- 6 spokes -->
+    <line x1="296" y1="114" x2="296" y2="158" stroke="#cc1e00" stroke-width="3.5" opacity=".85"/>
+    <line x1="274" y1="136" x2="318" y2="136" stroke="#cc1e00" stroke-width="3.5" opacity=".85"/>
+    <line x1="280.4" y1="120.4" x2="311.6" y2="151.6" stroke="#cc1e00" stroke-width="3" opacity=".75"/>
+    <line x1="311.6" y1="120.4" x2="280.4" y2="151.6" stroke="#cc1e00" stroke-width="3" opacity=".75"/>
+    <!-- Hub -->
+    <circle cx="296" cy="136" r="13" fill="#cc2200" stroke="#aa1800" stroke-width="1.5"/>
+    <circle cx="296" cy="136" r="8"  fill="#f0f0f0"/>
+    <circle cx="296" cy="136" r="5"  fill="white"/>
+    <circle cx="296" cy="136" r="3"  fill="#cc2200"/>
+    <!-- 5 lug bolts -->
+    <circle cx="296" cy="125" r="2" fill="#777"/>
+    <circle cx="305" cy="130" r="2" fill="#777"/>
+    <circle cx="302" cy="142" r="2" fill="#777"/>
+    <circle cx="290" cy="142" r="2" fill="#777"/>
+    <circle cx="287" cy="130" r="2" fill="#777"/>
+  </g>
+
+  <!-- ══ DIRT/DUST from rear wheel ══ -->
+  <g class="dirt">
+    <circle class="dp" cx="46" cy="155" r="3.5" fill="#7a5810" opacity=".75"/>
+    <circle class="dp" cx="40" cy="150" r="3" fill="#6a4808" opacity=".65"/>
+    <circle class="dp" cx="52" cy="161" r="2.5" fill="#8a6218" opacity=".55"/>
+    <circle class="dp" cx="35" cy="158" r="2" fill="#6a4808" opacity=".4"/>
+  </g>
+</svg>
+  </div>
+{% endblock %}

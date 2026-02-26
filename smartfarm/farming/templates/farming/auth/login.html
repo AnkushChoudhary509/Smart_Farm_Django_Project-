@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Smart Farming Solutions</title>
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#0a2016 0%,#1a3a2a 40%,#2d6a4f 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+
+/* Animated wheat stalks background */
+.bg-wheat{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.stalk{position:absolute;bottom:0;width:3px;background:linear-gradient(0deg,#1a5a2a,#4a9a4a);border-radius:2px;transform-origin:bottom center;}
+.stalk::after{content:'🌾';position:absolute;top:-20px;left:-8px;font-size:18px;animation:sway 3s ease-in-out infinite;}
+@keyframes sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+
+.card{position:relative;z-index:10;background:white;border-radius:24px;padding:2.8rem 2.4rem;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.4);}
+.logo-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.5rem;}
+.logo-icon{width:48px;height:48px;background:linear-gradient(135deg,#40916c,#d4a017);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.logo-text{font-family:'Playfair Display',serif;font-size:1.15rem;color:#1a3a2a;line-height:1.2;}
+.logo-text small{display:block;font-family:'DM Sans',sans-serif;font-size:.68rem;color:#64748b;font-weight:400;}
+h2{font-family:'Playfair Display',serif;font-size:1.65rem;color:#1a3a2a;margin:.8rem 0 .4rem;}
+.subtitle{color:#64748b;font-size:.88rem;margin-bottom:1.6rem;}
+
+.field{margin-bottom:1.1rem;}
+label{display:block;font-size:.82rem;font-weight:600;color:#1a3a2a;margin-bottom:.35rem;}
+.input-wrap{position:relative;}
+.input-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;}
+input[type=text],input[type=password],input[type=email]{width:100%;padding:11px 14px 11px 38px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.92rem;font-family:'DM Sans',sans-serif;background:#f8fafc;outline:none;transition:border .2s,background .2s;}
+input:focus{border-color:#40916c;background:white;}
+
+.error-box{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:.75rem 1rem;color:#dc2626;font-size:.84rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;}
+
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s,transform .1s;margin-top:.4rem;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+
+.divider{display:flex;align-items:center;gap:.75rem;margin:1.2rem 0;color:#94a3b8;font-size:.8rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+
+.signup-link{text-align:center;font-size:.88rem;color:#64748b;}
+.signup-link a{color:#2d6a4f;font-weight:600;text-decoration:none;}
+.signup-link a:hover{color:#1a3a2a;}
+
+.expert-note{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:.75rem 1rem;font-size:.78rem;color:#14532d;margin-top:1.1rem;display:flex;gap:.5rem;}
+.expert-note strong{display:block;margin-bottom:.2rem;}
+
+/* Role tabs */
+.role-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;}
+.role-tab{flex:1;padding:8px;border:1.5px solid #e2e8f0;border-radius:10px;background:white;font-size:.82rem;font-weight:600;color:#64748b;cursor:pointer;text-align:center;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.role-tab.active{background:#1a3a2a;border-color:#1a3a2a;color:white;}
+</style>
+</head>
+<body>
+<div class="bg-wheat" id="bgWheat"></div>
+<div class="card">
+  <div class="logo-row">
+    <div class="logo-icon">🌾</div>
+    <div class="logo-text">Smart Farming Solutions <small>For Indian Farmers</small></div>
+  </div>
+  <h2>Welcome Back 👋</h2>
+  <p class="subtitle">Sign in to access weather, mandi prices, expert advice and more.</p>
+
+  {% if error %}
+  <div class="error-box">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+    {% csrf_token %}
+    <div class="field">
+      <label>Username</label>
+      <div class="input-wrap">
+        <span>👤</span>
+        <input type="text" name="username" placeholder="Enter your username" autocomplete="username" required>
+      </div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <span>🔒</span>
+        <input type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+      </div>
+    </div>
+    <button type="submit" class="btn-primary">🌱 Sign In</button>
+  </form>
+
+  <div class="divider">or</div>
+
+  <div class="signup-link">
+    Don't have an account? <a href="{% url 'signup' %}">Create one free →</a>
+  </div>
+
+  <div class="expert-note">
+    <span>👨‍💼</span>
+    <div>
+      <strong>Agricultural Expert?</strong>
+      Use your designated expert credentials to access the expert panel and send SMS alerts to farmers.
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate wheat background stalks
+const bg = document.getElementById('bgWheat');
+for(let i=0;i<18;i++){
+  const s = document.createElement('div');
+  s.className = 'stalk';
+  s.style.cssText = `left:${Math.random()*100}%;height:${60+Math.random()*80}px;animation-delay:${Math.random()*2}s;opacity:${0.15+Math.random()*0.2};`;
+  s.querySelector ? null : null;
+  s.innerHTML = '<span style="position:absolute;top:-22px;left:-8px;font-size:18px;">🌾</span>';
+  bg.appendChild(s);
+}
+</script>
+</body>
+</html>

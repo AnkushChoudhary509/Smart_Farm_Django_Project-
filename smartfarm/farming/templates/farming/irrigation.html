@@ -1,0 +1,270 @@
+{% extends 'farming/base.html' %}
+{% block title %}Smart Irrigation Calculator — Smart Farming{% endblock %}
+
+{% block extra_css %}
+<style>
+.irr-hero { background:linear-gradient(150deg,#0c2340 0%,#0d3b5e 50%,#064663 100%); padding:3rem 2rem 2rem; position:relative; overflow:hidden; }
+.irr-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 50%,rgba(6,182,212,0.22) 0%,transparent 60%); }
+.irr-hero-inner { max-width:1100px; margin:0 auto; position:relative; }
+.irr-hero h1 { font-family:'Playfair Display',serif; color:white; font-size:clamp(1.8rem,4vw,2.8rem); margin-bottom:.4rem; }
+.irr-hero p  { color:rgba(255,255,255,.65); }
+.irr-body { max-width:1100px; margin:0 auto; padding:2.5rem 2rem; }
+
+/* FORM */
+.form-card { background:white; border-radius:18px; padding:2rem; box-shadow:0 4px 20px rgba(0,0,0,.08); margin-bottom:2rem; }
+.form-card h2 { font-size:1.1rem; font-weight:700; color:#1e293b; margin-bottom:1.5rem; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.fg { display:flex; flex-direction:column; gap:.35rem; }
+.fg label { font-size:.75rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.06em; }
+.fg select, .fg input {
+    padding:.72rem 1rem; border-radius:10px; border:1.5px solid #e2e8f0;
+    font-size:.9rem; font-family:'DM Sans',sans-serif;
+    background:white; color:#1e293b; outline:none; transition:border .2s;
+}
+.fg select:focus, .fg input:focus { border-color:#0ea5e9; }
+.fg .hint { font-size:.72rem; color:#94a3b8; }
+.calc-btn {
+    width:100%; padding:1rem; margin-top:.75rem; border-radius:12px;
+    background:linear-gradient(135deg,#0369a1,#0ea5e9);
+    color:white; font-size:1rem; font-weight:700; border:none;
+    cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s;
+}
+.calc-btn:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 6px 20px rgba(3,105,161,.35); }
+
+/* RESULTS */
+.results-wrap { margin-bottom:1.5rem; }
+.results-header { background:linear-gradient(135deg,#0369a1,#0ea5e9); color:white; border-radius:16px 16px 0 0; padding:1.25rem 1.5rem; }
+.results-header h2 { font-size:1.05rem; font-weight:700; }
+.results-header p  { font-size:.83rem; opacity:.8; margin:0; }
+.results-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    border:1px solid #e2e8f0; border-top:none;
+    border-radius:0 0 16px 16px; overflow:hidden;
+}
+.res-cell { padding:1.4rem; text-align:center; background:white; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; }
+.res-cell:nth-child(3n) { border-right:none; }
+.res-cell:nth-last-child(-n+3) { border-bottom:none; }
+.res-cell.highlight { background:linear-gradient(135deg,#f0fdf4,#dcfce7); }
+.res-cell.caution   { background:linear-gradient(135deg,#fff7ed,#fed7aa); }
+.res-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#64748b; margin-bottom:.5rem; }
+.res-value { font-size:1.9rem; font-weight:800; line-height:1; color:#0369a1; }
+.res-value.green  { color:#16a34a; }
+.res-value.orange { color:#d97706; }
+.res-unit  { font-size:.75rem; color:#94a3b8; margin-top:.3rem; }
+
+/* SAVINGS BAR */
+.savings-card { background:white; border-radius:14px; padding:1.5rem; border:1px solid #e2e8f0; margin-bottom:1.25rem; }
+.savings-title { font-size:.85rem; font-weight:700; color:#1e293b; margin-bottom:.85rem; }
+.savings-bar-bg { background:#f1f5f9; border-radius:8px; height:34px; position:relative; overflow:hidden; }
+.savings-bar-fill { height:100%; border-radius:8px; background:linear-gradient(90deg,#16a34a,#22c55e); display:flex; align-items:center; padding-left:10px; color:white; font-size:.8rem; font-weight:700; transition:width .8s ease; }
+.savings-labels { display:flex; justify-content:space-between; margin-top:.4rem; font-size:.72rem; color:#64748b; }
+
+/* RECO CARDS */
+.reco-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+.reco-card { background:white; border-radius:14px; padding:1.25rem; border:1px solid #e2e8f0; border-left:4px solid; }
+.reco-card.blue   { border-left-color:#0ea5e9; }
+.reco-card.green  { border-left-color:#22c55e; }
+.reco-card.orange { border-left-color:#f97316; }
+.reco-card.purple { border-left-color:#a855f7; }
+.reco-card h4 { font-size:.85rem; font-weight:700; color:#1e293b; margin-bottom:.4rem; }
+.reco-card p  { font-size:.82rem; color:#475569; margin:0; line-height:1.6; }
+
+/* REFERENCE */
+.ref-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+.ref-card { background:white; border-radius:16px; padding:1.5rem; border:1px solid #e2e8f0; }
+.ref-card h3 { font-size:.85rem; font-weight:700; color:#1e293b; margin-bottom:1rem; }
+.ref-row { display:flex; justify-content:space-between; padding:.55rem 0; border-bottom:1px solid #f1f5f9; font-size:.83rem; }
+.ref-row:last-child { border-bottom:none; }
+.ref-row .n { color:#475569; }
+.ref-row .v { font-weight:600; color:#1e293b; }
+
+@media(max-width:768px) { .form-grid{grid-template-columns:1fr;} .results-grid{grid-template-columns:1fr 1fr;} .reco-grid,.ref-grid{grid-template-columns:1fr;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="irr-hero">
+    <div class="irr-hero-inner">
+        <h1>💧 Smart Irrigation Calculator</h1>
+        <p>Calculate exact water requirements based on crop, soil, climate, and growth stage · FAO-based formulas</p>
+    </div>
+</div>
+
+<div class="irr-body">
+
+    <div class="form-card">
+        <h2>🌾 Enter Your Crop & Field Details</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="fg">
+                    <label>Crop Type</label>
+                    <select name="crop" required>
+                        <option value="wheat"     {% if request.POST.crop == 'wheat'     %}selected{% endif %}>🌾 Wheat</option>
+                        <option value="rice"      {% if request.POST.crop == 'rice'      %}selected{% endif %}>🌾 Rice</option>
+                        <option value="cotton"    {% if request.POST.crop == 'cotton'    %}selected{% endif %}>🏵️ Cotton</option>
+                        <option value="maize"     {% if request.POST.crop == 'maize'     %}selected{% endif %}>🌽 Maize</option>
+                        <option value="sugarcane" {% if request.POST.crop == 'sugarcane' %}selected{% endif %}>🌿 Sugarcane</option>
+                        <option value="tomato"    {% if request.POST.crop == 'tomato'    %}selected{% endif %}>🍅 Tomato</option>
+                        <option value="potato"    {% if request.POST.crop == 'potato'    %}selected{% endif %}>🥔 Potato</option>
+                        <option value="onion"     {% if request.POST.crop == 'onion'     %}selected{% endif %}>🧅 Onion</option>
+                        <option value="mustard"   {% if request.POST.crop == 'mustard'   %}selected{% endif %}>🟡 Mustard</option>
+                        <option value="soybean"   {% if request.POST.crop == 'soybean'   %}selected{% endif %}>🫘 Soybean</option>
+                        <option value="groundnut" {% if request.POST.crop == 'groundnut' %}selected{% endif %}>🥜 Groundnut</option>
+                        <option value="chickpea"  {% if request.POST.crop == 'chickpea'  %}selected{% endif %}>🫘 Chickpea</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Soil Type</label>
+                    <select name="soil" required>
+                        <option value="sandy"      {% if request.POST.soil == 'sandy'      %}selected{% endif %}>Sandy (low water holding)</option>
+                        <option value="sandy_loam" {% if request.POST.soil == 'sandy_loam' %}selected{% endif %}>Sandy Loam</option>
+                        <option value="loam"       {% if request.POST.soil == 'loam'       %}selected{% endif %}>Loam (medium)</option>
+                        <option value="clay_loam"  {% if request.POST.soil == 'clay_loam'  %}selected{% endif %}>Clay Loam</option>
+                        <option value="clay"       {% if request.POST.soil == 'clay'       %}selected{% endif %}>Clay (high water holding)</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Growth Stage</label>
+                    <select name="growth_stage" required>
+                        <option value="initial"    {% if request.POST.growth_stage == 'initial'    %}selected{% endif %}>Initial / Germination</option>
+                        <option value="vegetative" {% if request.POST.growth_stage == 'vegetative' %}selected{% endif %}>Vegetative</option>
+                        <option value="flowering"  {% if request.POST.growth_stage == 'flowering'  %}selected{% endif %}>Flowering / Reproductive</option>
+                        <option value="maturity"   {% if request.POST.growth_stage == 'maturity'   %}selected{% endif %}>Ripening / Maturity</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Irrigation Method</label>
+                    <select name="irrigation_method" required>
+                        <option value="flood"      {% if request.POST.irrigation_method == 'flood'      %}selected{% endif %}>🌊 Flood (60% efficiency)</option>
+                        <option value="furrow"     {% if request.POST.irrigation_method == 'furrow'     %}selected{% endif %}>🔀 Furrow (70%)</option>
+                        <option value="sprinkler"  {% if request.POST.irrigation_method == 'sprinkler'  %}selected{% endif %}>🚿 Sprinkler (80%)</option>
+                        <option value="drip"       {% if request.POST.irrigation_method == 'drip'       %}selected{% endif %}>💧 Drip (92% — Best)</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Field Area (acres)</label>
+                    <input type="number" name="area" min="0.1" max="1000" step="0.5" value="{{ request.POST.area|default:'1' }}" required>
+                    <span class="hint">1 acre = 0.4 hectare = 43,560 sq ft</span>
+                </div>
+                <div class="fg">
+                    <label>Rainfall Last 30 Days (mm)</label>
+                    <input type="number" name="rainfall" min="0" max="500" step="1" value="{{ request.POST.rainfall|default:'0' }}">
+                    <span class="hint">Enter 0 if no rain this month</span>
+                </div>
+                <div class="fg">
+                    <label>Temperature Condition</label>
+                    <select name="temperature">
+                        <option value="cool"     {% if request.POST.temperature == 'cool'     %}selected{% endif %}>🥶 Cool (below 20°C)</option>
+                        <option value="moderate" {% if request.POST.temperature == 'moderate' %}selected{% endif %}>🌤️ Moderate (20–30°C)</option>
+                        <option value="hot"      {% if request.POST.temperature == 'hot'      %}selected{% endif %}>☀️ Hot (30–38°C)</option>
+                        <option value="very_hot" {% if request.POST.temperature == 'very_hot' %}selected{% endif %}>🔥 Very Hot (above 38°C)</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="calc-btn">💧 Calculate Water Requirement</button>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="results-wrap">
+        <div class="results-header">
+            <h2>💧 Results — {{ result.crop|capfirst }} · {{ result.area_acres }} acre{% if result.area_acres != 1 %}s{% endif %}</h2>
+            <p>{{ result.growth_stage|capfirst }} stage · {{ result.soil }} soil · {{ result.irrigation_method }}</p>
+        </div>
+        <div class="results-grid">
+            <div class="res-cell highlight">
+                <div class="res-label">Daily Water Need</div>
+                <div class="res-value green">{{ result.daily_etc_mm }}</div>
+                <div class="res-unit">mm / day</div>
+            </div>
+            <div class="res-cell highlight">
+                <div class="res-label">Weekly Requirement</div>
+                <div class="res-value green">{{ result.weekly_need_mm }}</div>
+                <div class="res-unit">mm / week</div>
+            </div>
+            <div class="res-cell">
+                <div class="res-label">Irrigate Every</div>
+                <div class="res-value">{{ result.irr_frequency_days }}</div>
+                <div class="res-unit">days</div>
+            </div>
+            <div class="res-cell">
+                <div class="res-label">Litres / Acre / Week</div>
+                <div class="res-value" style="font-size:1.5rem;">{{ result.litres_per_acre_week }}</div>
+                <div class="res-unit">litres</div>
+            </div>
+            <div class="res-cell caution">
+                <div class="res-label">Total Volume / Week</div>
+                <div class="res-value orange">{{ result.total_cubic_meters }}</div>
+                <div class="res-unit">cubic metres</div>
+            </div>
+            <div class="res-cell">
+                <div class="res-label">Total Litres / Week</div>
+                <div class="res-value" style="font-size:1.4rem;">{{ result.total_litres_week }}</div>
+                <div class="res-unit">litres (full field)</div>
+            </div>
+        </div>
+    </div>
+
+    {% if result.savings_pct > 0 %}
+    <div class="savings-card">
+        <div class="savings-title">💰 Water Savings vs Flood Irrigation using {{ result.irrigation_method|capfirst }}</div>
+        <div class="savings-bar-bg">
+            <div class="savings-bar-fill" style="width:{{ result.savings_pct }}%">{{ result.savings_pct }}% water saved</div>
+        </div>
+        <div class="savings-labels">
+            <span>0% (Flood baseline)</span>
+            <span>{{ result.savings_pct }}% saved = lower electricity bill</span>
+            <span>100%</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="reco-grid">
+        <div class="reco-card blue">
+            <h4>⏰ Best Time to Irrigate</h4>
+            <p>Irrigate in <strong>early morning (5–8 AM)</strong> or <strong>evening (5–7 PM)</strong>. Avoid afternoon — 30–40% water is lost to evaporation in hot weather.</p>
+        </div>
+        <div class="reco-card green">
+            <h4>📆 Your Schedule</h4>
+            <p>Based on {{ result.soil }} soil and {{ result.growth_stage }} stage, irrigate every <strong>{{ result.irr_frequency_days }} days</strong>. Check top 2 inches of soil — irrigate when dry.</p>
+        </div>
+        <div class="reco-card orange">
+            <h4>🔋 Pump Requirement</h4>
+            <p>You need <strong>{{ result.total_litres_week }} litres/week</strong>. A 5-HP pump delivers ~4,000 L/hr — run for approx {{ result.total_litres_week|divisibleby:4000 }} hours per irrigation cycle.</p>
+        </div>
+        <div class="reco-card purple">
+            <h4>💧 Switch to Drip?</h4>
+            <p>PM Krishi Sinchayee gives <strong>up to 90% subsidy</strong> on drip systems. Saves 40–60% water and increases yield 20–40%. Contact District Agriculture Office.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="ref-grid">
+        <div class="ref-card">
+            <h3>🌾 Crop Water Needs (mm/day) — Initial → Vegetative → Flowering → Maturity</h3>
+            <div class="ref-row"><span class="n">Wheat</span>      <span class="v">2.5 → 4.5 → 6.5 → 3.5</span></div>
+            <div class="ref-row"><span class="n">Rice</span>       <span class="v">6.0 → 8.0 → 9.0 → 6.0</span></div>
+            <div class="ref-row"><span class="n">Cotton</span>     <span class="v">3.0 → 5.5 → 7.5 → 4.5</span></div>
+            <div class="ref-row"><span class="n">Maize</span>      <span class="v">3.0 → 5.5 → 7.0 → 4.0</span></div>
+            <div class="ref-row"><span class="n">Tomato</span>     <span class="v">2.5 → 4.5 → 6.0 → 4.0</span></div>
+            <div class="ref-row"><span class="n">Potato</span>     <span class="v">2.0 → 5.0 → 7.0 → 4.5</span></div>
+            <div class="ref-row"><span class="n">Sugarcane</span>  <span class="v">3.5 → 7.0 → 8.5 → 5.5</span></div>
+        </div>
+        <div class="ref-card">
+            <h3>🏔️ Soil Water Holding Capacity</h3>
+            <div class="ref-row"><span class="n">Sandy</span>      <span class="v">60 mm/m</span></div>
+            <div class="ref-row"><span class="n">Sandy Loam</span> <span class="v">100 mm/m</span></div>
+            <div class="ref-row"><span class="n">Loam</span>       <span class="v">140 mm/m</span></div>
+            <div class="ref-row"><span class="n">Clay Loam</span>  <span class="v">170 mm/m</span></div>
+            <div class="ref-row"><span class="n">Clay</span>       <span class="v">200 mm/m</span></div>
+            <h3 style="margin-top:1.25rem;">🚿 Irrigation Efficiency</h3>
+            <div class="ref-row"><span class="n">Flood</span>      <span class="v" style="color:#dc2626;">60% — lowest</span></div>
+            <div class="ref-row"><span class="n">Furrow</span>     <span class="v" style="color:#d97706;">70%</span></div>
+            <div class="ref-row"><span class="n">Sprinkler</span>  <span class="v" style="color:#2563eb;">80%</span></div>
+            <div class="ref-row"><span class="n">Drip</span>       <span class="v" style="color:#16a34a;">92% — best</span></div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

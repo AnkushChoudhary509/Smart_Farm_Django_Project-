@@ -1,0 +1,274 @@
+{% extends 'farming/base.html' %}
+{% block title %}Government Schemes for Farmers — Smart Farming{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+.gs-hero {
+  background: linear-gradient(150deg, #1c0f3f 0%, #2d1a5e 50%, #1a3a6e 100%);
+  padding: 3rem 2rem 2rem; position: relative; overflow: hidden;
+}
+.gs-hero::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(212,160,23,0.2) 0%, transparent 55%),
+              radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.15) 0%, transparent 50%);
+}
+.gs-hero-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.gs-title { font-family: 'Playfair Display', serif; color: white; font-size: clamp(1.8rem,4vw,2.8rem); margin-bottom: 0.4rem; }
+.gs-subtitle { color: rgba(255,255,255,0.65); font-size: 1rem; }
+
+/* Quick stats banner */
+.gs-stats {
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px; padding: 1.25rem 1.5rem;
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1rem; margin-top: 1.5rem;
+}
+.gs-stat { text-align: center; }
+.gs-stat .num { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: #fbbf24; }
+.gs-stat .lbl { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+
+.gs-body { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+/* Alert bar */
+.helpline-bar {
+  background: linear-gradient(135deg, #14532d, #166534);
+  color: white; border-radius: 14px; padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.helpline-bar .hl-group { display: flex; align-items: center; gap: 0.5rem; }
+.helpline-bar .hl-num { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; }
+.helpline-bar .hl-lbl { font-size: 0.78rem; opacity: 0.8; }
+
+/* Filter tabs */
+.scheme-filters { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.sf-btn {
+  padding: 7px 18px; border-radius: 20px; border: 1.5px solid #e2e8f0;
+  background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s; color: #475569;
+}
+.sf-btn.active, .sf-btn:hover { background: #2d1a5e; color: white; border-color: #2d1a5e; }
+
+/* Scheme cards */
+.schemes-list { display: flex; flex-direction: column; gap: 1.5rem; }
+.scheme-card {
+  background: white; border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07); overflow: hidden;
+  border: 1px solid #e8eaf6;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.scheme-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+
+.sc-header {
+  padding: 1.5rem 2rem;
+  display: flex; align-items: flex-start; gap: 1.25rem;
+  cursor: pointer;
+}
+.sc-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; flex-shrink: 0; color: white;
+}
+.sc-title-group { flex: 1; }
+.sc-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.25rem; }
+.sc-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #1e293b; margin-bottom: 0.2rem; }
+.sc-tagline { font-size: 0.88rem; color: #64748b; }
+.sc-benefit-pill {
+  background: #f0fdf4; color: #14532d; border: 1px solid #86efac;
+  border-radius: 20px; padding: 6px 16px; font-size: 0.82rem; font-weight: 600;
+  white-space: nowrap; flex-shrink: 0;
+}
+.sc-chevron { font-size: 1rem; color: #94a3b8; margin-left: 0.5rem; transition: transform 0.3s; }
+.sc-chevron.open { transform: rotate(180deg); }
+
+.sc-body { display: none; padding: 0 2rem 1.5rem; border-top: 1px solid #f1f5f9; }
+.sc-body.open { display: block; }
+.sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.25rem; }
+
+.sc-section h4 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 0.75rem; }
+.sc-section p { font-size: 0.9rem; color: #334155; line-height: 1.7; margin: 0; }
+.sc-section ul { list-style: none; padding: 0; }
+.sc-section ul li { font-size: 0.88rem; color: #334155; padding: 0.3rem 0; padding-left: 1.2rem; position: relative; }
+.sc-section ul li::before { content: '✓'; position: absolute; left: 0; color: #22c55e; font-weight: 700; }
+
+.sc-footer {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: 1rem 0; border-top: 1px solid #f1f5f9; margin-top: 1.25rem;
+}
+.sc-helpline { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.sc-helpline strong { color: #1e293b; }
+.sc-helpline span { color: #64748b; }
+.sc-portal {
+  margin-left: auto; padding: 8px 20px; border-radius: 10px;
+  color: white; text-decoration: none; font-size: 0.85rem; font-weight: 600;
+  transition: opacity 0.2s;
+}
+.sc-portal:hover { opacity: 0.85; }
+.sc-badge-active { background: #dcfce7; color: #14532d; padding: 3px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; }
+.sc-highlight {
+  background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px;
+  padding: 0.75rem 1rem; margin-top: 1rem; font-size: 0.85rem; color: #78350f;
+}
+
+@media (max-width: 768px) {
+  .gs-stats { grid-template-columns: 1fr 1fr; }
+  .sc-grid { grid-template-columns: 1fr; }
+  .sc-header { flex-wrap: wrap; }
+  .sc-benefit-pill { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gs-hero">
+  <div class="gs-hero-inner">
+    <p class="gs-subtitle">🏛️ Central & State Government</p>
+    <h1 class="gs-title">Government Schemes for Farmers</h1>
+    <p class="gs-subtitle">Know your rights. Claim your benefits. ₹2+ lakh crore available for Indian farmers.</p>
+    <div class="gs-stats">
+      <div class="gs-stat"><div class="num">8</div><div class="lbl">Active Schemes</div></div>
+      <div class="gs-stat"><div class="num">11 Cr+</div><div class="lbl">PM-KISAN Beneficiaries</div></div>
+      <div class="gs-stat"><div class="num">₹6,000</div><div class="lbl">Annual Income Support</div></div>
+      <div class="gs-stat"><div class="num">90%</div><div class="lbl">Max Drip Irrigation Subsidy</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="gs-body">
+
+  <!-- Helpline bar -->
+  <div class="helpline-bar">
+    <span style="font-size:1.3rem;">📞</span>
+    <div class="hl-group">
+      <div>
+        <div class="hl-lbl">PM-KISAN Helpline</div>
+        <div class="hl-num">155261</div>
+      </div>
+    </div>
+    <div class="hl-group">
+      <div>
+        <div class="hl-lbl">Crop Insurance (PMFBY)</div>
+        <div class="hl-num">14447</div>
+      </div>
+    </div>
+    <div class="hl-group">
+      <div>
+        <div class="hl-lbl">e-NAM Market Help</div>
+        <div class="hl-num">1800-270-0224</div>
+      </div>
+    </div>
+    <div class="hl-group">
+      <div>
+        <div class="hl-lbl">Soil Health Card</div>
+        <div class="hl-num">1800-180-1551</div>
+      </div>
+    </div>
+    <div style="margin-left:auto;font-size:0.8rem;opacity:0.8;">All helplines are Toll-Free 🆓</div>
+  </div>
+
+  <!-- Schemes -->
+  <div class="schemes-list">
+
+    {% for scheme in schemes %}
+    <div class="scheme-card">
+      <div class="sc-header" onclick="toggleScheme('{{ scheme.id }}')">
+        <div class="sc-icon" style="background:{{ scheme.color }}">
+          {% if scheme.icon == '💰' %}💰
+          {% elif scheme.icon == 'shield' %}🛡️
+          {% elif scheme.icon == 'card' %}💳
+          {% elif scheme.icon == 'market' %}🏪
+          {% elif scheme.icon == 'water' %}💧
+          {% elif scheme.icon == 'leaf' %}🌱
+          {% elif scheme.icon == 'soil' %}🧪
+          {% elif scheme.icon == 'build' %}🏗️
+          {% else %}{{ scheme.icon }}{% endif %}
+        </div>
+        <div class="sc-title-group">
+          <div class="sc-tag" style="color:{{ scheme.color }}">{{ scheme.name }}</div>
+          <div class="sc-name">{{ scheme.full_name }}</div>
+          <div class="sc-tagline">{{ scheme.tagline }}</div>
+        </div>
+        <div class="sc-benefit-pill">{{ scheme.benefit|truncatechars:60 }}</div>
+        <span class="sc-badge-active">Active ✓</span>
+        <span class="sc-chevron" id="chev-{{ scheme.id }}">▼</span>
+      </div>
+
+      <div class="sc-body" id="body-{{ scheme.id }}">
+        <div class="sc-grid">
+          <div class="sc-section">
+            <h4>💰 What You Get</h4>
+            <p>{{ scheme.benefit }}</p>
+          </div>
+          <div class="sc-section">
+            <h4>✅ Who Can Apply</h4>
+            <p>{{ scheme.eligibility }}</p>
+          </div>
+          <div class="sc-section">
+            <h4>📄 Documents Needed</h4>
+            <ul>
+              {% for doc in scheme.documents %}
+              <li>{{ doc }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="sc-section">
+            <h4>📝 How to Apply</h4>
+            <p>{{ scheme.how_to_apply }}</p>
+          </div>
+        </div>
+
+        <div class="sc-highlight">
+          🏆 <strong>Impact:</strong> {{ scheme.highlight }} — {{ scheme.beneficiaries }} farmers benefited
+        </div>
+
+        <div class="sc-footer">
+          <div class="sc-helpline">
+            <span>📞</span>
+            <div>
+              <strong>Helpline: {{ scheme.helpline }}</strong>
+              <span style="display:block;font-size:0.75rem;">Call for help with registration or complaints</span>
+            </div>
+          </div>
+          <a href="{{ scheme.portal }}" target="_blank" class="sc-portal" style="background:{{ scheme.color }}">
+            🌐 Apply Online →
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="background:linear-gradient(135deg,#1c0f3f,#2d1a5e);border-radius:20px;padding:2.5rem;margin-top:2rem;text-align:center;color:white;">
+    <div style="font-size:2rem;margin-bottom:0.75rem;">🧑‍🌾</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:0.75rem;">Need Help Applying?</h2>
+    <p style="color:rgba(255,255,255,0.75);max-width:500px;margin:0 auto 1.5rem;font-size:0.95rem;">Visit your nearest Common Service Centre (CSC) or Krishi Vigyan Kendra (KVK). They provide free help with registration for all government schemes.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="https://locator.csccloud.in" target="_blank" style="background:#fbbf24;color:#1c0f3f;padding:10px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:0.9rem;">📍 Find Nearest CSC</a>
+      <a href="https://kvk.icar.gov.in" target="_blank" style="background:rgba(255,255,255,0.15);color:white;padding:10px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:0.9rem;border:1px solid rgba(255,255,255,0.3);">🏫 Find Nearest KVK</a>
+      <a href="{% url 'ask_expert' %}" style="background:rgba(255,255,255,0.15);color:white;padding:10px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:0.9rem;border:1px solid rgba(255,255,255,0.3);">❓ Ask Our Expert</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleScheme(id) {
+  const body = document.getElementById('body-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+// Open first scheme by default
+document.addEventListener('DOMContentLoaded', () => {
+  toggleScheme('pmkisan');
+});
+</script>
+{% endblock %}

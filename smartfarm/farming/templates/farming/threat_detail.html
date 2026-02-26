@@ -1,0 +1,259 @@
+{% extends 'farming/base.html' %}
+{% block title %}{{ threat.name }} - Smart Farming Solutions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-wrapper {
+        max-width: 1100px;
+        margin: 3rem auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .back-link {
+        max-width: 1100px;
+        margin: 2rem auto 0;
+        padding: 0 2rem;
+        display: block;
+        color: var(--green-mid);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+
+    .detail-top {
+        padding: 2.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-heading {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        flex-shrink: 0;
+    }
+
+    .detail-icon.wildlife { background: #fce8e8; }
+    .detail-icon.pest { background: #fef3e2; }
+    .detail-icon.weed { background: #e8f5e9; }
+
+    .detail-heading h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--green-deep); margin-bottom: 0.5rem; }
+    .detail-heading .badges { display: flex; gap: 0.5rem; }
+
+    .detail-desc { color: #5a7a5a; line-height: 1.8; font-size: 0.98rem; }
+
+    .detail-section {
+        padding: 2rem 2.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-section:last-child { border-bottom: none; }
+
+    .detail-section h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--green-deep);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .prevention-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .prevention-list li {
+        padding: 0.75rem 1rem;
+        background: #f8fff8;
+        border-radius: 10px;
+        border-left: 3px solid var(--green-bright);
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+
+    .treatment-box {
+        background: #fff9e6;
+        border: 1px solid #f0d060;
+        border-radius: 12px;
+        padding: 1.25rem;
+        font-size: 0.9rem;
+        line-height: 1.8;
+        color: #5a4500;
+    }
+
+    .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .meta-item {
+        background: #f8faf8;
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .meta-item label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.3rem; }
+    .meta-item span { font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
+
+    /* Sidebar */
+    .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .sidebar-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    .sidebar-card h3 {
+        font-size: 1rem;
+        color: var(--green-deep);
+        margin-bottom: 1rem;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .related-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .related-item:last-child { border-bottom: none; }
+    .related-item:hover .related-name { color: var(--green-mid); }
+    .related-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #f0f7f0; flex-shrink: 0; }
+    .related-name { font-size: 0.88rem; font-weight: 600; color: var(--text-dark); }
+    .related-sev { font-size: 0.75rem; color: #888; }
+
+    .crops-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .crop-tag { background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+
+    @media (max-width: 900px) {
+        .detail-wrapper { grid-template-columns: 1fr; }
+        .meta-grid { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'threat_list' %}" class="back-link">← Back to All Threats</a>
+
+<div class="detail-wrapper">
+    <div>
+        <div class="detail-card">
+            <div class="detail-top">
+                <div class="detail-heading">
+                    <div class="detail-icon {{ threat.category }}">{{ threat.icon }}</div>
+                    <div>
+                        <h1>{{ threat.name }}</h1>
+                        <div class="badges">
+                            <span class="badge badge-{{ threat.category }}">{{ threat.get_category_display }}</span>
+                            <span class="badge badge-{{ threat.severity }}">⚠️ {{ threat.get_severity_display }} Severity</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="detail-desc">{{ threat.description }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h2>📋 Quick Info</h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <label>Category</label>
+                        <span>{{ threat.get_category_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>Severity Level</label>
+                        <span>{{ threat.get_severity_display }}</span>
+                    </div>
+                    <div class="meta-item" style="grid-column: 1/-1;">
+                        <label>Active Season</label>
+                        <span>{{ threat.season }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>🛡️ Prevention Methods</h2>
+                <ul class="prevention-list">
+                    {% for line in threat.prevention_methods.splitlines %}
+                    {% if line.strip %}
+                    <li>{{ line }}</li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h2>💊 Treatment</h2>
+                <div class="treatment-box">{{ threat.treatment }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <!-- Affected Crops -->
+        <div class="sidebar-card">
+            <h3>🌾 Affected Crops</h3>
+            <div class="crops-tags">
+                {% for crop in threat.affected_crops.split %}
+                <span class="crop-tag">{{ crop|cut:"," }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Related Threats -->
+        {% if related %}
+        <div class="sidebar-card">
+            <h3>🔗 Related Threats</h3>
+            {% for r in related %}
+            <a href="{% url 'threat_detail' r.pk %}" class="related-item">
+                <div class="related-icon">{{ r.icon }}</div>
+                <div>
+                    <div class="related-name">{{ r.name }}</div>
+                    <div class="related-sev">{{ r.get_severity_display }} severity</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Ask Expert -->
+        <div class="sidebar-card" style="background: var(--green-deep); color: white;">
+            <h3 style="color:white;">Need Expert Help?</h3>
+            <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:1rem;line-height:1.6;">Describe your specific situation and get personalized advice from our agricultural experts.</p>
+            <a href="{% url 'ask_expert' %}" class="btn btn-gold" style="width:100%;text-align:center;display:block;padding:10px;">Ask Expert Free →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

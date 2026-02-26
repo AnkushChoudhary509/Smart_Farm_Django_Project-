@@ -1,0 +1,175 @@
+{% extends 'farming/base.html' %}
+{% block title %}All Threats - Smart Farming Solutions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-bar {
+        background: white;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+    }
+
+    .filter-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-inner input, .filter-inner select {
+        padding: 10px 16px;
+        border: 1.5px solid #e0e8e0;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-family: 'DM Sans', sans-serif;
+        outline: none;
+        transition: border-color 0.2s;
+        background: white;
+    }
+
+    .filter-inner input { flex: 1; min-width: 220px; }
+    .filter-inner input:focus, .filter-inner select:focus { border-color: var(--green-bright); }
+    .filter-inner button { padding: 10px 24px; background: var(--green-mid); color: white; border: none; border-radius: 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; transition: background 0.2s; }
+    .filter-inner button:hover { background: var(--green-deep); }
+
+    .threats-grid {
+        max-width: 1300px;
+        margin: 3rem auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .threat-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+        text-decoration: none;
+        display: block;
+    }
+
+    .threat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+    .threat-header {
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .threat-icon-wrap {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        flex-shrink: 0;
+    }
+
+    .threat-icon-wrap.wildlife { background: #fce8e8; }
+    .threat-icon-wrap.pest { background: #fef3e2; }
+    .threat-icon-wrap.weed { background: #e8f5e9; }
+
+    .threat-meta h3 { font-size: 1.05rem; color: var(--green-deep); margin-bottom: 0.35rem; }
+    .threat-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+    .threat-body { padding: 0 1.5rem 1.5rem; }
+    .threat-body p { font-size: 0.88rem; color: #5a7a5a; line-height: 1.7; margin-bottom: 1rem; }
+    .threat-crops { font-size: 0.8rem; color: #888; }
+    .threat-crops strong { color: var(--text-mid); }
+
+    .threat-link {
+        display: inline-block;
+        margin-top: 0.5rem;
+        color: var(--green-mid);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #888;
+        grid-column: 1/-1;
+    }
+
+    .no-results h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+
+    .results-count {
+        max-width: 1300px;
+        margin: 2rem auto 0;
+        padding: 0 2rem;
+        color: #6b8c6b;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🔍 All Crop Threats</h1>
+    <p>Search and filter threats to find solutions for your specific problem</p>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="filter-inner">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search by name, crop, or description...">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for value, label in categories %}
+            <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="severity">
+            <option value="">All Severities</option>
+            <option value="critical" {% if severity == 'critical' %}selected{% endif %}>Critical</option>
+            <option value="high" {% if severity == 'high' %}selected{% endif %}>High</option>
+            <option value="medium" {% if severity == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="low" {% if severity == 'low' %}selected{% endif %}>Low</option>
+        </select>
+        <button type="submit">Search</button>
+        {% if search or category or severity %}
+        <a href="{% url 'threat_list' %}" style="color:#888;font-size:0.85rem;text-decoration:none;">✕ Clear</a>
+        {% endif %}
+    </div>
+</form>
+
+<p class="results-count">{{ threats.count }} threat{{ threats.count|pluralize }} found</p>
+
+<div class="threats-grid">
+    {% for threat in threats %}
+    <a href="{% url 'threat_detail' threat.pk %}" class="threat-card">
+        <div class="threat-header">
+            <div class="threat-icon-wrap {{ threat.category }}">{{ threat.icon }}</div>
+            <div class="threat-meta">
+                <h3>{{ threat.name }}</h3>
+                <div class="threat-badges">
+                    <span class="badge badge-{{ threat.category }}">{{ threat.get_category_display }}</span>
+                    <span class="badge badge-{{ threat.severity }}">{{ threat.get_severity_display }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="threat-body">
+            <p>{{ threat.description|truncatechars:130 }}</p>
+            <div class="threat-crops"><strong>Affected Crops:</strong> {{ threat.affected_crops|truncatechars:80 }}</div>
+            <div class="threat-link">View Prevention & Treatment →</div>
+        </div>
+    </a>
+    {% empty %}
+    <div class="no-results">
+        <h3>No threats found</h3>
+        <p>Try adjusting your search filters</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends 'farming/base.html' %}
+{% block title %}Live Mandi Prices — Smart Farming{% endblock %}
+
+{% block extra_css %}
+<style>
+.mp-hero{background:linear-gradient(135deg,#0f0c29,#1a1a6e,#24243e);padding:3rem 2rem 2rem;text-align:center;}
+.mp-hero h1{font-family:'Playfair Display',serif;color:white;font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:.5rem;}
+.mp-hero p{color:rgba(255,255,255,.6);margin-bottom:1.5rem;}
+.mp-body{max-width:1300px;margin:0 auto;padding:2rem;}
+/* SEARCH BAR */
+.mp-controls{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.5rem;}
+.mp-controls select,.mp-controls input{padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.88rem;font-family:'DM Sans',sans-serif;background:white;color:#334155;outline:none;}
+.mp-controls select:focus,.mp-controls input:focus{border-color:#22c55e;}
+.mp-search-btn{padding:10px 22px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.88rem;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.mp-search-btn:hover{opacity:.9;}
+.mp-search-btn:disabled{opacity:.5;cursor:not-allowed;}
+/* STATUS */
+.live-badge{display:inline-flex;align-items:center;gap:.4rem;background:#f0fdf4;border:1.5px solid #22c55e;color:#14532d;padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:700;}
+.demo-badge{display:inline-flex;align-items:center;gap:.4rem;background:#fff7ed;border:1.5px solid #f97316;color:#9a3412;padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:700;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* TABLE */
+.mp-table-wrap{background:white;border-radius:18px;box-shadow:0 3px 20px rgba(0,0,0,.07);overflow:hidden;margin-bottom:1.5rem;}
+.mp-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+.mp-table thead th{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white;padding:.85rem 1rem;text-align:left;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;}
+.mp-table tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s;}
+.mp-table tbody tr:hover{background:#f8fafc;}
+.mp-table td{padding:.8rem 1rem;color:#334155;vertical-align:middle;}
+.mp-table td:nth-child(3){font-weight:700;font-size:.95rem;color:#1a3a2a;}
+.trend-up{color:#16a34a;font-weight:700;}
+.trend-down{color:#dc2626;font-weight:700;}
+.trend-stable{color:#d97706;font-weight:700;}
+/* MSP BAR */
+.msp-bar-wrap{height:8px;background:#e2e8f0;border-radius:4px;min-width:80px;}
+.msp-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#22c55e,#16a34a);}
+/* SUMMARY CARDS */
+.mp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.mpc{background:white;border-radius:14px;padding:1.25rem;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;}
+.mpc-val{font-family:'Playfair Display',serif;font-size:1.8rem;color:#1a3a2a;font-weight:700;}
+.mpc-label{font-size:.75rem;color:#64748b;margin-top:.2rem;}
+/* COMMODITY TABS */
+.commodity-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+.ctab{padding:7px 18px;border-radius:20px;border:1.5px solid #e2e8f0;background:white;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.ctab:hover,.ctab.active{background:#1a3a2a;color:white;border-color:#1a3a2a;}
+/* CHART */
+.price-chart{display:flex;align-items:flex-end;gap:6px;height:80px;padding:.5rem 0;}
+.pc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end;}
+.pc-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;background:linear-gradient(180deg,#22c55e,#16a34a);}
+.pc-lbl{font-size:.58rem;color:#64748b;text-align:center;white-space:nowrap;overflow:hidden;max-width:50px;}
+/* MSP LINE NOTE */
+.msp-note{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:.85rem 1.2rem;font-size:.82rem;color:#14532d;margin-bottom:1.25rem;}
+.msp-note strong{font-weight:700;}
+@media(max-width:768px){.mp-summary{grid-template-columns:1fr 1fr}.mp-controls{flex-direction:column}.mp-table td:nth-child(6){display:none}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mp-hero">
+  <h1>📊 Live Mandi Prices</h1>
+  <p>Real-time crop prices from Agmarknet — Government of India Open Data</p>
+</div>
+
+<div class="mp-body">
+
+  <!-- COMMODITY TABS -->
+  <div class="commodity-tabs" id="commodityTabs">
+    <button class="ctab active" onclick="selectCommodity('Wheat',this)">🌾 Wheat</button>
+    <button class="ctab" onclick="selectCommodity('Rice',this)">🍚 Rice</button>
+    <button class="ctab" onclick="selectCommodity('Cotton',this)">🏵️ Cotton</button>
+    <button class="ctab" onclick="selectCommodity('Onion',this)">🧅 Onion</button>
+    <button class="ctab" onclick="selectCommodity('Tomato',this)">🍅 Tomato</button>
+    <button class="ctab" onclick="selectCommodity('Potato',this)">🥔 Potato</button>
+    <button class="ctab" onclick="selectCommodity('Maize',this)">🌽 Maize</button>
+    <button class="ctab" onclick="selectCommodity('Soyabean',this)">🫘 Soybean</button>
+    <button class="ctab" onclick="selectCommodity('Mustard',this)">🌿 Mustard</button>
+    <button class="ctab" onclick="selectCommodity('Groundnut',this)">🥜 Groundnut</button>
+    <button class="ctab" onclick="selectCommodity('Sugarcane',this)">🌿 Sugarcane</button>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="mp-controls">
+    <select id="stateFilter">
+      <option value="">All States</option>
+      <option>Punjab</option><option>Haryana</option><option>Uttar Pradesh</option>
+      <option>Madhya Pradesh</option><option>Rajasthan</option><option>Maharashtra</option>
+      <option>Gujarat</option><option>Karnataka</option><option>Andhra Pradesh</option>
+      <option>Telangana</option><option>Tamil Nadu</option><option>West Bengal</option>
+    </select>
+    <button class="mp-search-btn" id="refreshBtn" onclick="loadPrices()">
+      🔄 Refresh Live Data
+    </button>
+    <div id="dataStatus" class="demo-badge">⏳ Loading...</div>
+  </div>
+
+  <!-- MSP NOTE -->
+  <div class="msp-note" id="mspNote">
+    <strong>📋 MSP Reference:</strong> Loading MSP data...
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="mp-summary">
+    <div class="mpc"><div class="mpc-val" id="sumHigh">--</div><div class="mpc-label">Highest Price (₹/qtl)</div></div>
+    <div class="mpc"><div class="mpc-val" id="sumLow">--</div><div class="mpc-label">Lowest Price (₹/qtl)</div></div>
+    <div class="mpc"><div class="mpc-val" id="sumAvg">--</div><div class="mpc-label">Average Price (₹/qtl)</div></div>
+    <div class="mpc"><div class="mpc-val" id="sumCount">--</div><div class="mpc-label">Mandis Reporting</div></div>
+  </div>
+
+  <!-- PRICE CHART -->
+  <div class="mp-table-wrap" style="padding:1.25rem 1.25rem .5rem;">
+    <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:.06em;margin-bottom:.5rem;">📈 Top Mandis Price Comparison</div>
+    <div class="price-chart" id="priceChart"><div style="color:#94a3b8;font-size:.82rem;align-self:center;">Loading...</div></div>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="mp-table-wrap">
+    <table class="mp-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Mandi / Market</th>
+          <th>Modal Price<br><small style="font-weight:400;opacity:.7;">₹ per Quintal</small></th>
+          <th>Min — Max</th><th>State</th><th>Date</th><th>vs MSP</th>
+        </tr>
+      </thead>
+      <tbody id="mandiTableBody">
+        <tr><td colspan="7" style="text-align:center;padding:2rem;color:#94a3b8;">Loading live data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size:.75rem;color:#94a3b8;text-align:center;">
+    Data source: Agmarknet via <a href="https://data.gov.in" target="_blank" style="color:#64748b;">data.gov.in</a> — Government of India Open Data Platform. Prices updated daily.
+  </p>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// MSP 2024-25 (₹/quintal)
+const MSP = {
+    'Wheat':2275,'Rice':2300,'Maize':2090,'Soyabean':4892,
+    'Mustard':5950,'Groundnut':6783,'Sugarcane':340,
+    'Cotton':7121,'Onion':0,'Tomato':0,'Potato':0
+};
+
+let currentCommodity = 'Wheat';
+let currentData = [];
+
+function selectCommodity(name, btn) {
+    currentCommodity = name;
+    document.querySelectorAll('.ctab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadPrices();
+}
+
+async function loadPrices() {
+    const btn = document.getElementById('refreshBtn');
+    const status = document.getElementById('dataStatus');
+    const state = document.getElementById('stateFilter').value;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Loading...';
+    status.className = 'demo-badge';
+    status.textContent = '⏳ Fetching...';
+
+    try {
+        const url = `/api/mandi-prices/?commodity=${encodeURIComponent(currentCommodity)}&state=${encodeURIComponent(state)}`;
+        const r = await fetch(url);
+        const d = await r.json();
+
+        if (d.status === 'live' && d.data && d.data.length > 0) {
+            currentData = d.data;
+            status.className = 'live-badge';
+            status.innerHTML = '🟢 LIVE — Agmarknet Data';
+            renderTable(currentData);
+            renderSummary(currentData);
+            renderChart(currentData);
+        } else {
+            throw new Error(d.error || 'No data returned from API');
+        }
+    } catch(err) {
+        console.warn('Live API error, using fallback data:', err.message);
+        currentData = getFallbackData(currentCommodity);
+        status.className = 'demo-badge';
+        status.innerHTML = '📋 Demo Data (API unavailable)';
+        renderTable(currentData);
+        renderSummary(currentData);
+        renderChart(currentData);
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔄 Refresh Live Data';
+    updateMSPNote(currentCommodity);
+}
+
+function renderTable(data) {
+    const msp = MSP[currentCommodity] || 0;
+    const tbody = document.getElementById('mandiTableBody');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#94a3b8;">No data found. Try a different commodity or state.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.slice(0,30).map((r,i) => {
+        const price = Math.round(r.price || 0);
+        const min   = Math.round(r.min || price * 0.95);
+        const max   = Math.round(r.max || price * 1.05);
+        const pct   = msp > 0 ? Math.round(((price - msp) / msp) * 100) : 0;
+        const barW  = msp > 0 ? Math.min(100, Math.round((price/msp)*100)) : 50;
+        const mspClass = pct >= 0 ? 'trend-up' : 'trend-down';
+        const mspText  = msp > 0 ? `<span class="${mspClass}">${pct >= 0 ? '+' : ''}${pct}%</span>` : '—';
+        const date = r.date || 'Today';
+        return `<tr>
+            <td style="color:#94a3b8">${i+1}</td>
+            <td><strong style="color:#1a3a2a">${r.mandi}</strong>${r.district ? '<br><small style="color:#94a3b8">'+r.district+'</small>' : ''}</td>
+            <td>₹${price.toLocaleString('en-IN')}</td>
+            <td style="color:#64748b">₹${min.toLocaleString('en-IN')} — ₹${max.toLocaleString('en-IN')}</td>
+            <td>${r.state || '—'}</td>
+            <td style="color:#94a3b8;font-size:.78rem">${date}</td>
+            <td>
+                <div class="msp-bar-wrap"><div class="msp-bar" style="width:${barW}%"></div></div>
+                <div style="font-size:.72rem;margin-top:2px">${mspText}</div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function renderSummary(data) {
+    if (!data.length) return;
+    const prices = data.map(r => r.price || 0).filter(p => p > 0);
+    document.getElementById('sumHigh').textContent  = '₹' + Math.max(...prices).toLocaleString('en-IN');
+    document.getElementById('sumLow').textContent   = '₹' + Math.min(...prices).toLocaleString('en-IN');
+    document.getElementById('sumAvg').textContent   = '₹' + Math.round(prices.reduce((a,b) => a+b, 0) / prices.length).toLocaleString('en-IN');
+    document.getElementById('sumCount').textContent = data.length;
+}
+
+function renderChart(data) {
+    const top10 = [...data].sort((a,b) => b.price - a.price).slice(0, 10);
+    if (!top10.length) return;
+    const maxP = Math.max(...top10.map(r => r.price));
+    document.getElementById('priceChart').innerHTML = top10.map(r => {
+        const h = Math.max(6, Math.round((r.price / maxP) * 72));
+        const label = r.mandi.split(',')[0].substring(0, 12);
+        return `<div class="pc-col">
+            <div class="pc-bar" style="height:${h}px" title="${r.mandi}: ₹${Math.round(r.price).toLocaleString('en-IN')}"></div>
+            <div class="pc-lbl">${label}</div>
+        </div>`;
+    }).join('');
+}
+
+function updateMSPNote(commodity) {
+    const msp = MSP[commodity];
+    const note = document.getElementById('mspNote');
+    if (msp && msp > 0) {
+        note.innerHTML = `<strong>📋 MSP 2024-25:</strong> Minimum Support Price for ${commodity} is <strong>₹${msp.toLocaleString('en-IN')}/quintal</strong>. Selling below MSP is against government policy — contact your APMC if mandis offer below MSP.`;
+    } else {
+        note.innerHTML = `<strong>📋 Note:</strong> ${commodity} does not have a government MSP. Prices are entirely market-driven.`;
+    }
+}
+
+// Fallback demo data if live API is unavailable
+function getFallbackData(commodity) {
+    const DEMO = {
+        'Wheat': [
+            {mandi:'Khanna',state:'Punjab',district:'Ludhiana',price:2310,min:2250,max:2380,date:'Today'},
+            {mandi:'Karnal',state:'Haryana',district:'Karnal',price:2290,min:2220,max:2360,date:'Today'},
+            {mandi:'Hapur',state:'Uttar Pradesh',district:'Hapur',price:2240,min:2180,max:2300,date:'Today'},
+            {mandi:'Indore',state:'Madhya Pradesh',district:'Indore',price:2260,min:2200,max:2320,date:'Today'},
+            {mandi:'Jodhpur',state:'Rajasthan',district:'Jodhpur',price:2220,min:2160,max:2280,date:'Today'},
+            {mandi:'Nagpur',state:'Maharashtra',district:'Nagpur',price:2270,min:2210,max:2340,date:'Today'},
+        ],
+        'Rice': [
+            {mandi:'Karnal',state:'Haryana',district:'Karnal',price:2350,min:2250,max:2450,date:'Today'},
+            {mandi:'Cuttack',state:'Odisha',district:'Cuttack',price:2180,min:2080,max:2280,date:'Today'},
+            {mandi:'Thanjavur',state:'Tamil Nadu',district:'Thanjavur',price:2200,min:2100,max:2300,date:'Today'},
+            {mandi:'Bardhaman',state:'West Bengal',district:'Bardhaman',price:2150,min:2050,max:2250,date:'Today'},
+        ],
+        'Onion': [
+            {mandi:'Lasalgaon',state:'Maharashtra',district:'Nashik',price:1950,min:1700,max:2200,date:'Today'},
+            {mandi:'Pimpalgaon',state:'Maharashtra',district:'Nashik',price:1820,min:1600,max:2050,date:'Today'},
+            {mandi:'Mahuva',state:'Gujarat',district:'Bhavnagar',price:1900,min:1700,max:2100,date:'Today'},
+            {mandi:'Hubli',state:'Karnataka',district:'Dharwad',price:1750,min:1550,max:1950,date:'Today'},
+        ],
+    };
+    return DEMO[commodity] || DEMO['Wheat'];
+}
+
+// Auto-load on page start
+document.addEventListener('DOMContentLoaded', () => loadPrices());
+document.getElementById('stateFilter').addEventListener('change', loadPrices);
+</script>
+{% endblock %}

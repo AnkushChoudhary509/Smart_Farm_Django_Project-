@@ -1,0 +1,673 @@
+{% extends 'farming/base.html' %}
+{% block title %}Live Weather & Crop Advisory — Smart Farming{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── HERO ── */
+.wx-hero {
+    background: linear-gradient(160deg,#062236 0%,#0a3a5c 45%,#0d5a8a 100%);
+    padding: 3rem 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.wx-hero::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse at 70% 0%,rgba(14,165,233,0.25) 0%,transparent 60%),
+                radial-gradient(ellipse at 20% 100%,rgba(99,102,241,0.18) 0%,transparent 50%);
+}
+.wx-hero-inner { max-width:1200px; margin:0 auto; position:relative; }
+.wx-hero h1 { font-family:'Playfair Display',serif; color:white; font-size:clamp(1.8rem,4vw,2.8rem); margin-bottom:.4rem; }
+.wx-hero p { color:rgba(255,255,255,.65); margin-bottom:1.5rem; }
+
+/* ── SEARCH ── */
+.wx-search {
+    display:flex; gap:.6rem; align-items:center;
+    background:rgba(255,255,255,.12); backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.25); border-radius:14px;
+    padding:.7rem 1rem; max-width:520px;
+}
+.wx-search input {
+    flex:1; background:none; border:none; outline:none;
+    color:white; font-size:.95rem; font-family:'DM Sans',sans-serif;
+}
+.wx-search input::placeholder { color:rgba(255,255,255,.45); }
+.wx-search button {
+    background:#0ea5e9; color:white; border:none; border-radius:10px;
+    padding:8px 22px; font-weight:700; cursor:pointer; font-size:.88rem;
+    font-family:'DM Sans',sans-serif; transition:background .2s; white-space:nowrap;
+}
+.wx-search button:hover { background:#0369a1; }
+.wx-search button:disabled { opacity:.6; cursor:not-allowed; }
+.loc-btn {
+    background: rgba(255,255,255,.15); color:white; border:1.5px solid rgba(255,255,255,.3);
+    border-radius:10px; padding:8px 14px; font-weight:600; cursor:pointer;
+    font-size:.85rem; font-family:'DM Sans',sans-serif; transition:all .2s;
+    white-space:nowrap; display:flex; align-items:center; gap:6px;
+}
+.loc-btn:hover { background:rgba(255,255,255,.25); border-color:rgba(255,255,255,.5); }
+.loc-btn:disabled { opacity:.5; cursor:not-allowed; }
+.loc-pulse { animation: locpulse 1.2s ease-in-out infinite; }
+@keyframes locpulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── BODY ── */
+.wx-body { max-width:1200px; margin:0 auto; padding:2rem; }
+
+/* ── ALERT BANNERS ── */
+.wx-alert {
+    border-radius:12px; padding:.85rem 1.2rem;
+    display:flex; align-items:flex-start; gap:.75rem;
+    margin-bottom:.85rem; border-left:4px solid;
+}
+.wx-alert.rain   { background:#eff6ff; border-color:#3b82f6; }
+.wx-alert.heat   { background:#fff7ed; border-color:#f97316; }
+.wx-alert.storm  { background:#fef2f2; border-color:#ef4444; }
+.wx-alert.good   { background:#f0fdf4; border-color:#22c55e; }
+.wx-alert.frost  { background:#f0f9ff; border-color:#06b6d4; }
+.wx-alert.info   { background:#f8fafc; border-color:#94a3b8; }
+.wx-alert-icon   { font-size:1.4rem; flex-shrink:0; }
+.wx-alert-body strong { display:block; font-size:.9rem; color:#1e293b; margin-bottom:.2rem; }
+.wx-alert-body p { font-size:.83rem; color:#475569; margin:0; line-height:1.55; }
+
+/* ── GRID ── */
+.wx-grid  { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem; }
+.wx-card  { background:white; border-radius:18px; padding:1.5rem; box-shadow:0 3px 16px rgba(0,0,0,.07); border:1px solid #e8f0fe; }
+.wx-card-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#64748b; margin-bottom:1rem; }
+
+/* ── CURRENT ── */
+.current-card { background:linear-gradient(135deg,#0369a1,#0ea5e9); color:white; border:none; }
+.current-card .wx-card-title { color:rgba(255,255,255,.65); }
+.wx-location { font-size:.95rem; font-weight:600; margin-bottom:.2rem; }
+.wx-temp-big { font-size:4.5rem; font-weight:800; line-height:1; letter-spacing:-3px; margin:.4rem 0; }
+.wx-desc { font-size:.95rem; opacity:.85; text-transform:capitalize; }
+.wx-icon-big { font-size:3rem; float:right; margin-top:-1rem; }
+.wx-stats-row { display:flex; gap:1.5rem; margin-top:1rem; flex-wrap:wrap; }
+.wx-stat strong { display:block; font-size:1.05rem; }
+.wx-stat { font-size:.8rem; opacity:.9; }
+
+/* ── FORECAST ── */
+.forecast-strip { display:flex; gap:.6rem; overflow-x:auto; padding-bottom:.4rem; }
+.fc-day { flex:0 0 80px; text-align:center; padding:.85rem .4rem; background:white; border-radius:12px; border:1.5px solid #e2e8f0; }
+.fc-day.today { background:linear-gradient(135deg,#0369a1,#0ea5e9); color:white; border-color:transparent; }
+.fc-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#64748b; }
+.fc-day.today .fc-label,.fc-day.today .fc-rain { color:rgba(255,255,255,.75); }
+.fc-icon { font-size:1.7rem; margin:.3rem 0; }
+.fc-temps { font-size:.78rem; font-weight:700; color:#1e293b; }
+.fc-day.today .fc-temps { color:white; }
+.fc-rain { font-size:.68rem; color:#3b82f6; margin-top:.25rem; min-height:14px; }
+
+/* ── TEMP CHART ── */
+.temp-chart { display:flex; align-items:flex-end; gap:4px; height:72px; padding:.2rem 0; }
+.tc-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; height:100%; justify-content:flex-end; }
+.tc-bar { width:100%; border-radius:4px 4px 0 0; background:linear-gradient(to top,#0369a1,#7dd3fc); min-height:4px; }
+.tc-lbl { font-size:.6rem; color:#64748b; white-space:nowrap; }
+
+/* ── CROP ── */
+.crop-btns { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.85rem; }
+.crop-btn { padding:5px 13px; border-radius:18px; border:1.5px solid #e2e8f0; background:white; font-size:.8rem; font-weight:500; cursor:pointer; transition:all .2s; font-family:'DM Sans',sans-serif; }
+.crop-btn:hover,.crop-btn.active { background:#1a3a2a; color:white; border-color:#1a3a2a; }
+#cropAdvisory { background:#f0fdf4; border-radius:12px; padding:1.1rem; border-left:4px solid #22c55e; }
+#cropAdvisory strong { color:#14532d; display:block; margin-bottom:.35rem; }
+#cropAdvisory p { color:#166534; margin:0; font-size:.87rem; line-height:1.65; }
+
+/* ── FERT ── */
+.fert-item { display:flex; align-items:center; gap:.75rem; padding:.75rem; background:#f8fafc; border-radius:10px; border-left:3px solid; margin-bottom:.6rem; }
+.fert-item.due      { border-color:#f97316; background:#fff7ed; }
+.fert-item.upcoming { border-color:#22c55e; background:#f0fdf4; }
+.fert-item.past     { border-color:#94a3b8; opacity:.6; }
+.fert-body strong { display:block; font-size:.85rem; color:#1e293b; }
+.fert-body span   { font-size:.75rem; color:#64748b; }
+.fert-badge { margin-left:auto; padding:3px 10px; border-radius:10px; font-size:.7rem; font-weight:700; white-space:nowrap; }
+.fert-item.due .fert-badge      { background:#fed7aa; color:#9a3412; }
+.fert-item.upcoming .fert-badge { background:#bbf7d0; color:#14532d; }
+.fert-item.past .fert-badge     { background:#e2e8f0; color:#475569; }
+
+/* ── CONDITION TABLE ── */
+.cond-table { width:100%; border-collapse:collapse; font-size:.83rem; }
+.cond-table th { background:#f1f5f9; padding:.6rem 1rem; text-align:left; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#475569; }
+.cond-table td { padding:.72rem 1rem; border-bottom:1px solid #f1f5f9; color:#334155; }
+.cond-table tr:last-child td { border-bottom:none; }
+.cond-table tr.active-row td { background:#fef9c3; }
+.ok { color:#16a34a; font-weight:600; }
+.warn { color:#d97706; font-weight:600; }
+.bad { color:#dc2626; font-weight:600; }
+
+/* ── SPINNER ── */
+.spin { display:inline-block; width:16px; height:16px; border:3px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media(max-width:768px) { .wx-grid { grid-template-columns:1fr; } }
+
+/* STATE ADVISORY PANEL */
+.state-adv-wrap{background:white;border-radius:18px;box-shadow:0 3px 20px rgba(0,0,0,.07);padding:1.5rem;margin:1.5rem 0;}
+.state-adv-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.state-adv-header h3{font-family:'Playfair Display',serif;color:#1a3a2a;font-size:1.2rem;margin:0;}
+.state-select{padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;background:white;color:#1a3a2a;min-width:200px;}
+.state-select:focus{border-color:#22c55e;}
+.state-adv-body{display:none;}
+.state-adv-body.active{display:block;}
+.state-crops-badge{display:inline-block;background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:600;margin-bottom:1rem;}
+.state-season-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.state-season-box{border-radius:12px;padding:1rem;}
+.state-season-box.kharif{background:#fffbeb;border:1px solid #fde68a;}
+.state-season-box.rabi{background:#f0f9ff;border:1px solid #bae6fd;}
+.state-season-box h4{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;}
+.state-season-box.kharif h4{color:#92400e;}
+.state-season-box.rabi h4{color:#1e40af;}
+.state-season-box p{font-size:.85rem;line-height:1.7;margin:0;color:#374151;}
+.state-alert-box{background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:.85rem 1.1rem;margin-bottom:.75rem;font-size:.84rem;color:#9f1239;line-height:1.65;}
+.state-schemes-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:.85rem 1.1rem;font-size:.84rem;color:#14532d;line-height:1.65;}
+@media(max-width:600px){.state-season-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wx-hero">
+    <div class="wx-hero-inner">
+        <h1>⛅ Live Weather & Crop Advisory</h1>
+        <p>Real-time weather · Rain alerts · Sowing advice · Fertilizer timing</p>
+        <div class="wx-search">
+            <span>📍</span>
+            <input type="text" id="cityInput" placeholder="Enter city — or click 📡 to detect location..." />
+            <button id="searchBtn" onclick="fetchWeather()">Get Weather</button>
+        </div>
+        <button class="loc-btn" id="locBtn" onclick="useMyLocation()" style="margin-top:.75rem;">
+            <span id="locIcon">📡</span> <span id="locText">Use My Location</span>
+        </button>
+        <div id="statusMsg" style="margin-top:.75rem;font-size:.82rem;color:rgba(255,255,255,.65);min-height:1.2rem;"></div>
+    </div>
+</div>
+
+<div class="wx-body">
+
+    <div id="alertsRow"></div>
+
+    <div class="wx-grid">
+        <!-- CURRENT WEATHER -->
+        <div class="wx-card current-card">
+            <div class="wx-card-title">📡 CURRENT CONDITIONS</div>
+            <div class="wx-icon-big" id="wxIcon">🌤️</div>
+            <div class="wx-location" id="wxLocation">Enter your city above ↑</div>
+            <div class="wx-temp-big" id="wxTemp">--°</div>
+            <div class="wx-desc" id="wxDesc">Type city name and click Get Weather</div>
+            <div class="wx-stats-row">
+                <div class="wx-stat"><strong id="wxHum">--%</strong>Humidity</div>
+                <div class="wx-stat"><strong id="wxWind">--</strong>Wind km/h</div>
+                <div class="wx-stat"><strong id="wxRain">--</strong>Rain mm</div>
+                <div class="wx-stat"><strong id="wxFeels">--°</strong>Feels Like</div>
+                <div class="wx-stat"><strong id="wxVis">--km</strong>Visibility</div>
+                <div class="wx-stat"><strong id="wxCloud">--%</strong>Cloud</div>
+            </div>
+        </div>
+
+        <!-- FORECAST -->
+        <div class="wx-card">
+            <div class="wx-card-title">📅 3-DAY FORECAST</div>
+            <div class="forecast-strip" id="forecastStrip">
+                <div style="color:#94a3b8;font-size:.85rem;padding:.5rem;">Search your city to see forecast</div>
+            </div>
+            <div style="margin-top:1.25rem;">
+                <div class="wx-card-title" style="margin-bottom:.6rem;">🌡️ TEMPERATURE TREND</div>
+                <div class="temp-chart" id="tempChart">
+                    <div style="color:#94a3b8;font-size:.78rem;align-self:center;">No data yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CROP ADVISORY -->
+    <div class="wx-card" style="margin-bottom:1.25rem;">
+        <div class="wx-card-title">🌱 CROP SOWING ADVISORY</div>
+        <div class="crop-btns">
+            <button class="crop-btn active" onclick="selectCrop('wheat',this)">🌾 Wheat</button>
+            <button class="crop-btn" onclick="selectCrop('rice',this)">🌾 Rice</button>
+            <button class="crop-btn" onclick="selectCrop('cotton',this)">🏵️ Cotton</button>
+            <button class="crop-btn" onclick="selectCrop('mustard',this)">🟡 Mustard</button>
+            <button class="crop-btn" onclick="selectCrop('maize',this)">🌽 Maize</button>
+            <button class="crop-btn" onclick="selectCrop('soybean',this)">🫘 Soybean</button>
+            <button class="crop-btn" onclick="selectCrop('tomato',this)">🍅 Tomato</button>
+            <button class="crop-btn" onclick="selectCrop('onion',this)">🧅 Onion</button>
+            <button class="crop-btn" onclick="selectCrop('potato',this)">🥔 Potato</button>
+            <button class="crop-btn" onclick="selectCrop('groundnut',this)">🥜 Groundnut</button>
+            <button class="crop-btn" onclick="selectCrop('chickpea',this)">🫘 Chickpea</button>
+            <button class="crop-btn" onclick="selectCrop('sugarcane',this)">🌿 Sugarcane</button>
+        </div>
+        <div id="cropAdvisory">
+            <strong>🌾 Wheat — Rabi Season (Oct–Mar)</strong>
+            <p>Sow Oct 15 – Nov 15 for best yield. Apply 120:60:40 NPK kg/ha. Irrigate at CRI, tillering, jointing, flowering, and grain filling stages. Use certified seed, treat with Carboxin+Thiram fungicide.</p>
+        </div>
+    </div>
+
+    <div class="wx-grid">
+
+        <!-- FERTILIZER TIMING -->
+        <div class="wx-card">
+            <div class="wx-card-title">🧪 FERTILIZER TIMING ALERTS</div>
+            <div id="fertList">
+                <div class="fert-item due"><div style="font-size:1.2rem;">⚡</div><div class="fert-body"><strong>Basal NPK Application</strong><span>Full P &amp; K + 1/3 N before sowing</span></div><div class="fert-badge">Act Now</div></div>
+                <div class="fert-item upcoming"><div style="font-size:1.2rem;">🌿</div><div class="fert-body"><strong>Top-dress Urea (1st Split)</strong><span>1/3 N at 21 days after sowing</span></div><div class="fert-badge">21 Days</div></div>
+                <div class="fert-item upcoming"><div style="font-size:1.2rem;">🌸</div><div class="fert-body"><strong>Potash at Flowering</strong><span>Improves grain fill and quality</span></div><div class="fert-badge">45 Days</div></div>
+                <div class="fert-item past"><div style="font-size:1.2rem;">✅</div><div class="fert-body"><strong>Seed Treatment Done</strong><span>Carboxin + Thiram before sowing</span></div><div class="fert-badge">Done</div></div>
+            </div>
+        </div>
+
+        <!-- CONDITION GUIDE -->
+        <div class="wx-card">
+            <div class="wx-card-title">📋 WEATHER CONDITION GUIDE</div>
+            <table class="cond-table">
+                <thead><tr><th>Condition</th><th>Risk</th><th>Action</th></tr></thead>
+                <tbody id="condTable">
+                    <tr><td>Temp &gt;35°C</td><td class="bad">High</td><td>Irrigate early morning, no noon spraying</td></tr>
+                    <tr><td>Temp 20–30°C</td><td class="ok">Ideal</td><td>Normal operations, best pesticide absorption</td></tr>
+                    <tr><td>Temp &lt;10°C</td><td class="warn">Moderate</td><td>Frost risk — cover nurseries, avoid spraying</td></tr>
+                    <tr><td>Rain &gt;15mm</td><td class="warn">Moderate</td><td>Postpone spraying, check drainage</td></tr>
+                    <tr><td>Humidity &gt;80%</td><td class="bad">High</td><td>Fungal alert — spray mancozeb 0.2%</td></tr>
+                    <tr><td>Wind &gt;20 km/h</td><td class="warn">Moderate</td><td>No spraying — pesticide drift risk</td></tr>
+                    <tr><td>Dry &gt;7 days</td><td class="bad">High</td><td>Irrigate now — aphid/mite explosion likely</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- ═══ STATE-WISE CROP ADVISORY ═══ -->
+    <div class="state-adv-wrap">
+        <div class="state-adv-header">
+            <h3>🗺️ State-Wise Crop Advisory</h3>
+            <select class="state-select" id="stateSelect" onchange="showStateAdvisory(this.value)">
+                <option value="">-- Select Your State / UT --</option>
+                {% for s in all_states %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="stateAdvBody" class="state-adv-body">
+            <div id="stateAdvContent"></div>
+        </div>
+        <p id="stateSelectHint" style="color:#94a3b8;font-size:.85rem;text-align:center;padding:1rem 0;">
+            Select your state above to see region-specific crop advisory, alerts, and government schemes.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── CROP ADVISORIES ──
+const ADV = {
+    wheat:    {r:'Sow Oct 15–Nov 15. Apply 120:60:40 NPK. Irrigate at CRI, tillering, jointing, flowering, grain filling.',k:'Avoid — wheat is a Rabi crop (Oct–Mar).'},
+    rice:     {k:'Raise nursery June. Transplant 25–30 days old. Use SRI for 30% water saving.',r:'Not suitable. Consider mustard or wheat.'},
+    cotton:   {k:'Sow after first monsoon rain (June). Use Bt seed. Monitor for whitefly from August.',r:'Cotton does not grow in Rabi.'},
+    mustard:  {r:'Sow Oct 1–15. Late sowing increases aphid risk and reduces yield by 20–30%.',k:'Not suitable for Kharif.'},
+    maize:    {k:'Sow June–July after monsoon. Monitor for Fall Army Worm from crop emergence.',r:'Rabi maize possible in South India (Nov–Mar).'},
+    soybean:  {k:'Sow June 15–July 15. Treat with Rhizobium culture. Central India crop.',r:'Not a Rabi crop.'},
+    tomato:   {k:'Raise nursery June under 50-mesh net. Transplant July. Watch leaf curl virus.',r:'Oct transplanting gives best fruit quality.'},
+    onion:    {k:'Nursery June — Maharashtra/Karnataka. Ensure good drainage.',r:'Main season. Nursery October, transplant November.'},
+    potato:   {r:'Plant Oct–Nov. Use certified seed tubers. Spray mancozeb preventively.',k:'Not suitable — needs cool weather.'},
+    groundnut:{k:'Sow June–July after first good rain. Apply gypsum at flowering.',r:'Rabi groundnut possible in AP/TN (November).'},
+    chickpea: {r:'Sow Oct–Nov. Install Helicoverpa pheromone traps from November.',k:'Not suitable for Kharif.'},
+    sugarcane:{k:'Feb–Mar planting for autumn ratoon crop.',r:'Oct–Nov planting for spring sugarcane.'}
+};
+
+function getSeason() { const m=new Date().getMonth()+1; return (m>=6&&m<=10)?'k':'r'; }
+
+function selectCrop(crop,btn) {
+    document.querySelectorAll('.crop-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const s=getSeason(), a=ADV[crop]||{};
+    const sl=s==='k'?'Kharif (Jun–Oct)':'Rabi (Oct–Mar)';
+    document.getElementById('cropAdvisory').innerHTML=
+        '<strong>'+btn.textContent+' — '+sl+' Season</strong>'+
+        '<p>'+(a[s]||'No advisory available for this crop/season.')+'</p>';
+}
+
+// ── WEATHER ICON ──
+function icon(code) {
+    if(!code) return '🌡️';
+    code=parseInt(code);
+    if(code===113) return '☀️';
+    if(code===116) return '⛅';
+    if(code===119||code===122) return '☁️';
+    if(code>=143&&code<=260) return '🌫️';
+    if(code>=263&&code<=302) return '🌦️';
+    if(code>=305&&code<=314) return '🌧️';
+    if(code>=317&&code<=335) return '❄️';
+    if(code>=338&&code<=395) return '⛈️';
+    return '🌡️';
+}
+
+// ── MAIN FETCH using wttr.in (FREE, no API key) ──
+async function fetchWeather() {
+    const city = document.getElementById('cityInput').value.trim();
+    if(!city) { alert('Please enter a city name'); return; }
+
+    const btn=document.getElementById('searchBtn');
+    const status=document.getElementById('statusMsg');
+    btn.innerHTML='<span class="spin"></span>Loading...';
+    btn.disabled=true;
+    status.textContent='Fetching live weather data...';
+    document.getElementById('alertsRow').innerHTML='';
+
+    try {
+        // wttr.in — completely free weather API, no key needed
+        // Returns JSON with current conditions + 3-day forecast
+        const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`;
+        const response = await fetch(url, {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if(!response.ok) {
+            throw new Error(`City not found (${response.status}). Try a different spelling.`);
+        }
+
+        const data = await response.json();
+
+        if(!data.current_condition || !data.current_condition[0]) {
+            throw new Error('No weather data returned. Try a major city nearby.');
+        }
+
+        renderCurrent(data, city);
+        renderForecast(data.weather);
+        status.textContent='✅ Live data loaded from wttr.in';
+        setTimeout(()=>{status.textContent='';},3000);
+
+    } catch(err) {
+        console.error('Weather error:', err);
+        status.textContent='';
+        document.getElementById('alertsRow').innerHTML=
+            '<div class="wx-alert storm">' +
+            '<div class="wx-alert-icon">❌</div>' +
+            '<div class="wx-alert-body">' +
+            '<strong>Could Not Load Weather</strong>' +
+            '<p>' + (err.message||'Connection failed.') + ' Make sure you are connected to the internet, then try again.</p>' +
+            '</div></div>';
+    }
+
+    btn.innerHTML='Get Weather';
+    btn.disabled=false;
+}
+
+function renderCurrent(data, city) {
+    const c = data.current_condition[0];
+    const near = data.nearest_area && data.nearest_area[0];
+    const locName = near ? (near.areaName[0].value + ', ' + near.country[0].value) : city;
+
+    const temp   = parseInt(c.temp_C);
+    const feels  = parseInt(c.FeelsLikeC);
+    const hum    = c.humidity;
+    const wind   = c.windspeedKmph;
+    const rain   = c.precipMM;
+    const vis    = c.visibility;
+    const cloud  = c.cloudcover;
+    const desc   = c.weatherDesc[0].value;
+    const code   = c.weatherCode;
+
+    document.getElementById('wxLocation').textContent = locName;
+    document.getElementById('wxTemp').textContent = temp + '°C';
+    document.getElementById('wxDesc').textContent = desc;
+    document.getElementById('wxIcon').textContent = icon(code);
+    document.getElementById('wxHum').textContent = hum + '%';
+    document.getElementById('wxWind').textContent = wind;
+    document.getElementById('wxRain').textContent = rain + 'mm';
+    document.getElementById('wxFeels').textContent = feels + '°C';
+    document.getElementById('wxVis').textContent = vis + 'km';
+    document.getElementById('wxCloud').textContent = cloud + '%';
+
+    buildAlerts(temp, parseInt(hum), parseInt(wind), parseFloat(rain), parseInt(code));
+    highlightCondTable(temp, parseInt(hum), parseInt(wind), parseFloat(rain));
+}
+
+function buildAlerts(temp, hum, wind, rain, code) {
+    let html = '';
+    if(code>=353&&code<=395)
+        html+='<div class="wx-alert storm"><div class="wx-alert-icon">⛈️</div><div class="wx-alert-body"><strong>Storm/Heavy Rain Alert</strong><p>Postpone all spraying. Check field drainage bunds immediately.</p></div></div>';
+    else if(rain>5)
+        html+='<div class="wx-alert rain"><div class="wx-alert-icon">🌧️</div><div class="wx-alert-body"><strong>Rain Alert — '+rain+'mm</strong><p>Avoid pesticide/herbicide spraying. Good time to apply fertilizer after rain stops.</p></div></div>';
+    if(temp>38)
+        html+='<div class="wx-alert heat"><div class="wx-alert-icon">🌡️</div><div class="wx-alert-body"><strong>Extreme Heat — '+temp+'°C</strong><p>Irrigate early morning (5–8 AM). Avoid fieldwork 11am–4pm. Heat stress risk on flowering crops.</p></div></div>';
+    if(hum>82)
+        html+='<div class="wx-alert storm"><div class="wx-alert-icon">🍄</div><div class="wx-alert-body"><strong>Fungal Disease Risk — '+hum+'% Humidity</strong><p>Humidity above 80% favors blast, blight, and powdery mildew. Spray mancozeb 0.2% preventively.</p></div></div>';
+    if(wind>20)
+        html+='<div class="wx-alert rain"><div class="wx-alert-icon">💨</div><div class="wx-alert-body"><strong>High Wind — '+wind+' km/h</strong><p>Do NOT spray pesticides or herbicides today — serious drift risk to neighbouring crops.</p></div></div>';
+    if(temp<5)
+        html+='<div class="wx-alert frost"><div class="wx-alert-icon">❄️</div><div class="wx-alert-body"><strong>Frost Warning — '+temp+'°C</strong><p>Cover nurseries and tender plants tonight. Do not irrigate before frost.</p></div></div>';
+    if(!html)
+        html='<div class="wx-alert good"><div class="wx-alert-icon">✅</div><div class="wx-alert-body"><strong>Good Farming Conditions</strong><p>No weather warnings today. Suitable for spraying, irrigation, and field operations.</p></div></div>';
+    document.getElementById('alertsRow').innerHTML=html;
+}
+
+function highlightCondTable(temp, hum, wind, rain) {
+    const rows = document.querySelectorAll('#condTable tr');
+    rows.forEach(r=>r.classList.remove('active-row'));
+    if(temp>35) rows[0]?.classList.add('active-row');
+    else if(temp>=20&&temp<=30) rows[1]?.classList.add('active-row');
+    else if(temp<10) rows[2]?.classList.add('active-row');
+    if(rain>15) rows[3]?.classList.add('active-row');
+    if(hum>80) rows[4]?.classList.add('active-row');
+    if(wind>20) rows[5]?.classList.add('active-row');
+}
+
+function renderForecast(weather) {
+    if(!weather||!weather.length) return;
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const strip = document.getElementById('forecastStrip');
+    strip.innerHTML = weather.slice(0,3).map((day,i) => {
+        const hi = parseInt(day.maxtempC);
+        const lo = parseInt(day.mintempC);
+        const rainMm = day.hourly.reduce((s,h)=>s+parseFloat(h.precipMM||0),0).toFixed(1);
+        const d = new Date(day.date);
+        const dayLabel = i===0?'Today':days[d.getDay()];
+        const midHour = day.hourly[4]||day.hourly[0];
+        const ic = icon(midHour?.weatherCode);
+        return '<div class="fc-day '+(i===0?'today':'')+'">'+
+               '<div class="fc-label">'+dayLabel+'</div>'+
+               '<div class="fc-icon">'+ic+'</div>'+
+               '<div class="fc-temps">'+hi+'° / '+lo+'°</div>'+
+               '<div class="fc-rain">'+(parseFloat(rainMm)>0?'🌧 '+rainMm+'mm':'')+'</div>'+
+               '</div>';
+    }).join('');
+
+    // Temp chart
+    const hi3 = weather.slice(0,3).map(d=>parseInt(d.maxtempC));
+    const maxT = Math.max(...hi3);
+    const minT = Math.min(...hi3);
+    const range = maxT-minT || 5;
+    document.getElementById('tempChart').innerHTML = hi3.map((t,i) => {
+        const h = Math.max(8, Math.round(((t-minT)/range)*60+10));
+        const d = new Date(weather[i].date);
+        const lbl = i===0?'Today':days[d.getDay()];
+        return '<div class="tc-col">'+
+               '<div class="tc-bar" style="height:'+h+'px" title="'+t+'°C"></div>'+
+               '<div class="tc-lbl">'+lbl+'</div>'+
+               '</div>';
+    }).join('');
+}
+
+// ── USE MY LOCATION (GPS) ──
+function useMyLocation() {
+    const btn = document.getElementById('locBtn');
+    const icon = document.getElementById('locIcon');
+    const text = document.getElementById('locText');
+    const status = document.getElementById('statusMsg');
+
+    if (!navigator.geolocation) {
+        status.textContent = '❌ Your browser does not support GPS location.';
+        return;
+    }
+
+    // Show loading state
+    icon.textContent = '⏳';
+    icon.classList.add('loc-pulse');
+    text.textContent = 'Detecting location...';
+    btn.disabled = true;
+    status.textContent = 'Getting your GPS coordinates...';
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude.toFixed(4);
+            const lon = pos.coords.longitude.toFixed(4);
+            status.textContent = `📍 Found you: ${lat}°N, ${lon}°E — loading weather...`;
+
+            // Use coordinates directly with wttr.in (lat,lon format works perfectly)
+            const coordStr = `${lat},${lon}`;
+            document.getElementById('cityInput').value = coordStr;
+
+            // Fetch weather for coordinates
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.innerHTML = '<span class="spin"></span>Loading...';
+            searchBtn.disabled = true;
+
+            try {
+                const url = `https://wttr.in/${coordStr}?format=j1`;
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error('Weather data not available for your location.');
+                const data = await response.json();
+
+                // Also try to get a human-readable name via reverse geocoding (no key needed)
+                try {
+                    const geoRes = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+                        { headers: { 'Accept-Language': 'en', 'User-Agent': 'SmartFarmingApp' } }
+                    );
+                    if (geoRes.ok) {
+                        const geoData = await geoRes.json();
+                        const addr = geoData.address;
+                        const cityName = addr.city || addr.town || addr.village || addr.county || addr.state_district || addr.state || 'Your Location';
+                        const stateName = addr.state || '';
+                        const displayName = stateName ? `${cityName}, ${stateName}` : cityName;
+                        document.getElementById('cityInput').value = displayName;
+                        localStorage.setItem('wx_city', displayName);
+                        renderCurrent(data, displayName);
+                    } else {
+                        renderCurrent(data, `${lat}°N, ${lon}°E`);
+                    }
+                } catch {
+                    renderCurrent(data, `${lat}°N, ${lon}°E`);
+                }
+
+                renderForecast(data.weather);
+                status.textContent = '✅ Live weather for your current location loaded!';
+                setTimeout(() => { status.textContent = ''; }, 3000);
+
+            } catch (err) {
+                status.textContent = '❌ Could not load weather: ' + err.message;
+                document.getElementById('alertsRow').innerHTML =
+                    '<div class="wx-alert storm"><div class="wx-alert-icon">❌</div>' +
+                    '<div class="wx-alert-body"><strong>Could Not Load Weather</strong>' +
+                    '<p>' + err.message + '</p></div></div>';
+            }
+
+            searchBtn.innerHTML = 'Get Weather';
+            searchBtn.disabled = false;
+            icon.textContent = '📡';
+            icon.classList.remove('loc-pulse');
+            text.textContent = 'Use My Location';
+            btn.disabled = false;
+        },
+        (err) => {
+            // Handle permission denied / errors
+            icon.textContent = '📡';
+            icon.classList.remove('loc-pulse');
+            text.textContent = 'Use My Location';
+            btn.disabled = false;
+
+            if (err.code === 1) {
+                status.textContent = '❌ Location permission denied. Please allow location access in your browser settings, then try again.';
+                document.getElementById('alertsRow').innerHTML =
+                    '<div class="wx-alert info"><div class="wx-alert-icon">🔒</div>' +
+                    '<div class="wx-alert-body"><strong>Location Permission Needed</strong>' +
+                    '<p>Click the 🔒 lock icon in your browser address bar → Allow Location → then click "Use My Location" again. Or just type your city name in the search box.</p>' +
+                    '</div></div>';
+            } else if (err.code === 2) {
+                status.textContent = '❌ Location unavailable. Try typing your city name instead.';
+            } else {
+                status.textContent = '❌ Location timed out. Try typing your city name instead.';
+            }
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000  // Cache location for 5 minutes
+        }
+    );
+}
+
+// Enter key to search
+document.getElementById('cityInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter') fetchWeather();
+});
+
+// Auto-load if saved city
+document.addEventListener('DOMContentLoaded', ()=>{
+    const saved = localStorage.getItem('wx_city');
+    if(saved) {
+        document.getElementById('cityInput').value = saved;
+        fetchWeather();
+    }
+});
+
+// Save city on search
+const origFetch = fetchWeather;
+window.fetchWeather = function() {
+    const c=document.getElementById('cityInput').value.trim();
+    if(c) localStorage.setItem('wx_city',c);
+    return origFetch();
+};
+
+// ── STATE ADVISORY ──
+var STATE_DATA = {{ state_advisories | safe }};
+
+function showStateAdvisory(state) {
+    var body = document.getElementById('stateAdvBody');
+    var content = document.getElementById('stateAdvContent');
+    var hint = document.getElementById('stateSelectHint');
+    if (!state || !STATE_DATA[state]) {
+        body.classList.remove('active');
+        hint.style.display = '';
+        return;
+    }
+    var d = STATE_DATA[state];
+    hint.style.display = 'none';
+    content.innerHTML =
+        '<div class="state-crops-badge">🌾 Main Crops: ' + d.main_crops + '</div>' +
+        '<div class="state-season-grid">' +
+            '<div class="state-season-box kharif">' +
+                '<h4>☀️ Kharif (Jun-Oct)</h4>' +
+                '<p>' + d.kharif + '</p>' +
+            '</div>' +
+            '<div class="state-season-box rabi">' +
+                '<h4>❄️ Rabi (Oct-Mar)</h4>' +
+                '<p>' + d.rabi + '</p>' +
+            '</div>' +
+        '</div>' +
+        '<div class="state-alert-box"><strong>⚠️ Current Alerts & Watch Points:</strong><br>' + d.alerts + '</div>' +
+        '<div class="state-schemes-box"><strong>🏛️ Key Government Schemes:</strong><br>' + d.schemes + '</div>';
+    body.classList.add('active');
+}
+
+// Auto-select state from weather search if available
+document.addEventListener('DOMContentLoaded', function() {
+    var stateMap = {
+        'Punjab':'Punjab','Haryana':'Haryana','Delhi':'Delhi','UP':'Uttar Pradesh',
+        'Uttar Pradesh':'Uttar Pradesh','Maharashtra':'Maharashtra','Gujarat':'Gujarat',
+        'Rajasthan':'Rajasthan','Karnataka':'Karnataka','Tamil Nadu':'Tamil Nadu',
+        'Andhra Pradesh':'Andhra Pradesh','Telangana':'Telangana','Kerala':'Kerala',
+        'West Bengal':'West Bengal','Bihar':'Bihar','Madhya Pradesh':'Madhya Pradesh',
+        'Odisha':'Odisha','Assam':'Assam','Jharkhand':'Jharkhand',
+        'Chhattisgarh':'Chhattisgarh','Uttarakhand':'Uttarakhand',
+        'Himachal Pradesh':'Himachal Pradesh','Goa':'Goa','Manipur':'Manipur',
+        'Meghalaya':'Meghalaya','Nagaland':'Nagaland','Sikkim':'Sikkim',
+        'Tripura':'Tripura','Mizoram':'Mizoram','Arunachal Pradesh':'Arunachal Pradesh',
+        'Ladakh':'Ladakh','Chandigarh':'Chandigarh','Jammu':'Jammu & Kashmir',
+        'Kashmir':'Jammu & Kashmir','Puducherry':'Puducherry','Pondicherry':'Puducherry'
+    };
+    var savedCity = localStorage.getItem('wx_city') || '';
+    for (var key in stateMap) {
+        if (savedCity.includes(key)) {
+            var sel = document.getElementById('stateSelect');
+            var val = stateMap[key];
+            if (sel) { sel.value = val; showStateAdvisory(val); }
+            break;
+        }
+    }
+});
+
+</script>
+{% endblock %}

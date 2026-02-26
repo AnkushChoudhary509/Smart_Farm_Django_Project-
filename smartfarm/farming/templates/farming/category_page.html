@@ -1,0 +1,77 @@
+{% extends 'farming/base.html' %}
+{% block title %}{{ category_name }} - Smart Farming Solutions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cat-header {
+        background: {% if color == 'wildlife' %}linear-gradient(135deg, #8b1a1a, #c44b4b){% elif color == 'pest' %}linear-gradient(135deg, #7a4a00, #c47a1a){% else %}linear-gradient(135deg, #1a4a1a, #3a7a3a){% endif %};
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .cat-header .big-icon { font-size: 4rem; display: block; margin-bottom: 1rem; }
+    .cat-header h1 { font-family: 'Playfair Display', serif; color: white; font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .cat-header p { color: rgba(255,255,255,0.8); font-size: 1rem; }
+
+    .threats-grid {
+        max-width: 1300px;
+        margin: 3rem auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .threat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        text-decoration: none;
+        display: block;
+        transition: all 0.3s;
+        border-top: 4px solid {% if color == 'wildlife' %}var(--wildlife){% elif color == 'pest' %}var(--pest){% else %}var(--weed){% endif %};
+    }
+
+    .threat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+    .tc-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .tc-icon { font-size: 2rem; }
+    .tc-top h3 { font-size: 1.05rem; color: var(--green-deep); }
+    .tc-desc { font-size: 0.88rem; color: #5a7a5a; line-height: 1.7; margin-bottom: 1rem; }
+    .tc-crops { font-size: 0.8rem; color: #888; margin-bottom: 0.75rem; }
+    .tc-link { color: {% if color == 'wildlife' %}var(--wildlife){% elif color == 'pest' %}var(--pest){% else %}var(--weed){% endif %}; font-size: 0.85rem; font-weight: 600; }
+
+    @media (max-width: 600px) { .threats-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cat-header">
+    <span class="big-icon">{{ icon }}</span>
+    <h1>{{ category_name }}</h1>
+    <p>{{ description }}</p>
+</div>
+
+<div class="threats-grid">
+    {% for threat in threats %}
+    <a href="{% url 'threat_detail' threat.pk %}" class="threat-card">
+        <div class="tc-top">
+            <span class="tc-icon">{{ threat.icon }}</span>
+            <div>
+                <h3>{{ threat.name }}</h3>
+                <span class="badge badge-{{ threat.severity }}">{{ threat.get_severity_display }}</span>
+            </div>
+        </div>
+        <p class="tc-desc">{{ threat.description|truncatechars:140 }}</p>
+        <div class="tc-crops">🌾 {{ threat.affected_crops|truncatechars:70 }}</div>
+        <div class="tc-season" style="font-size:0.78rem;color:#aaa;margin-bottom:0.5rem;">📅 {{ threat.season }}</div>
+        <div class="tc-link">See Prevention & Treatment →</div>
+    </a>
+    {% empty %}
+    <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888;">
+        <p>No threats documented yet in this category.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

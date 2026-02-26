@@ -1,0 +1,238 @@
+{% extends 'farming/base.html' %}
+{% block title %}Chat — Smart Farming{% endblock %}
+{% block extra_css %}
+<style>
+.chat-layout{display:grid;max-width:820px;margin:2rem auto;padding:0 1rem;gap:1rem;}
+/* Header */
+.chat-header{border-radius:18px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.chat-header.farmer-header{background:linear-gradient(135deg,#14532d,#16a34a);}
+.chat-header.expert-header{background:linear-gradient(135deg,#78350f,#ca8a04);}
+.chat-header strong{color:white;display:block;font-size:1rem;}
+.chat-header span{color:rgba(255,255,255,.65);font-size:.8rem;}
+.hbtn{padding:6px 14px;border-radius:10px;text-decoration:none;font-size:.8rem;font-weight:600;background:rgba(255,255,255,.18);color:white;transition:background .2s;}
+.hbtn:hover{background:rgba(255,255,255,.28);}
+/* Role badge */
+.role-badge{display:inline-flex;align-items:center;gap:.35rem;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:700;}
+.role-badge.farmer{background:#dcfce7;color:#14532d;}
+.role-badge.expert{background:#fef9c3;color:#713f12;}
+/* Chat window */
+.chat-window{background:white;border-radius:18px;box-shadow:0 4px 24px rgba(0,0,0,.1);display:flex;flex-direction:column;height:520px;}
+.chat-messages{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:.85rem;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:4px;}
+/* Messages */
+.msg{display:flex;gap:.7rem;align-items:flex-end;max-width:78%;}
+.msg.farmer-msg{align-self:flex-end;flex-direction:row-reverse;}
+.msg.expert-msg{align-self:flex-start;}
+.msg-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.msg.farmer-msg .msg-avatar{background:linear-gradient(135deg,#14532d,#16a34a);}
+.msg.expert-msg .msg-avatar{background:linear-gradient(135deg,#78350f,#ca8a04);}
+.msg-body{}
+.msg-bubble{padding:.75rem 1.1rem;border-radius:18px;font-size:.88rem;line-height:1.65;word-break:break-word;}
+.msg.farmer-msg .msg-bubble{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white;border-radius:18px 18px 4px 18px;}
+.msg.expert-msg .msg-bubble{background:#f1f5f9;color:#1e293b;border-radius:18px 18px 18px 4px;}
+.msg.expert-msg .msg-bubble.verified{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;}
+.msg-meta{font-size:.66rem;color:#94a3b8;margin-bottom:3px;}
+.msg.farmer-msg .msg-meta{text-align:right;}
+/* Expert badge in message */
+.expert-tag{display:inline-block;background:#22c55e;color:white;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:8px;margin-bottom:2px;}
+/* Typing */
+.typing-wrap{display:none;}
+.typing-wrap.show{display:flex;}
+.dot{width:7px;height:7px;border-radius:50%;background:#94a3b8;animation:blink 1.4s infinite;}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{transform:scale(1);opacity:.5}40%{transform:scale(1.3);opacity:1}}
+/* Input area */
+.chat-input-row{border-top:1px solid #f1f5f9;padding:1rem 1.25rem;display:flex;gap:.75rem;align-items:flex-end;}
+#msgInput{flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.9rem;font-family:'DM Sans',sans-serif;resize:none;outline:none;min-height:44px;max-height:130px;line-height:1.5;}
+#msgInput:focus{border-color:#22c55e;}
+.send-btn{padding:10px 24px;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-size:.9rem;white-space:nowrap;transition:opacity .2s;}
+.send-btn.farmer-send{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white;}
+.send-btn.expert-send{background:linear-gradient(135deg,#78350f,#ca8a04);color:white;}
+.send-btn:hover{opacity:.9;}
+.send-btn:disabled{opacity:.45;cursor:not-allowed;}
+/* Locked state for wrong role -->
+.chat-locked{background:#fffbeb;border:2px solid #fde047;border-radius:14px;padding:1.25rem;text-align:center;margin:.5rem 0;}
+/* Info strip */
+.chat-info-strip{background:#f8fafc;border-radius:12px;padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:#64748b;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+
+  <!-- HEADER -->
+  <div class="chat-header {% if is_expert %}expert-header{% else %}farmer-header{% endif %}">
+    <div style="font-size:2.2rem">{% if is_expert %}👨‍💼{% else %}🧑‍🌾{% endif %}</div>
+    <div style="flex:1;">
+      <strong>{{ room.farmer_name }} ↔ Agricultural Expert</strong>
+      <span>Session #{{ room.id }} · Started {{ room.created_at|date:"d M Y, g:i A" }} · {% if room.is_resolved %}✅ Resolved{% else %}🟢 Active{% endif %}</span>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+      <span class="role-badge {% if is_expert %}expert{% else %}farmer{% endif %}">
+        {% if is_expert %}👨‍💼 Expert View{% else %}🧑‍🌾 Farmer View{% endif %}
+      </span>
+      {% if is_expert and not room.is_resolved %}
+      <a href="{% url 'chat_resolve' room.id %}" onclick="return confirm('Mark this chat as resolved?')" class="hbtn">✅ Resolve</a>
+      {% endif %}
+      <a href="{% if is_expert %}{% url 'chat_list' %}{% else %}{% url 'chat_new' %}{% endif %}" class="hbtn">← {% if is_expert %}All Chats{% else %}New Chat{% endif %}</a>
+    </div>
+  </div>
+
+  <!-- CHAT WINDOW -->
+  <div class="chat-window">
+    <div class="chat-messages" id="chatMessages">
+      {% for m in msgs %}
+      <div class="msg {% if m.sender == 'farmer' %}farmer-msg{% else %}expert-msg{% endif %}" data-id="{{ m.id }}">
+        <div class="msg-avatar">{% if m.sender == 'farmer' %}🧑{% else %}👨‍💼{% endif %}</div>
+        <div class="msg-body">
+          {% if m.sender == 'expert' %}<div class="expert-tag">✅ Verified Expert</div>{% endif %}
+          <div class="msg-meta">{{ m.sender_name }} · {{ m.created_at|date:"g:i A, d M" }}</div>
+          <div class="msg-bubble {% if m.sender == 'expert' %}verified{% endif %}">{{ m.message }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      <!-- Typing indicator -->
+      <div class="msg expert-msg typing-wrap" id="typingIndicator">
+        <div class="msg-avatar">👨‍💼</div>
+        <div class="msg-body">
+          <div class="msg-meta">Expert is typing...</div>
+          <div class="msg-bubble" style="padding:.6rem 1rem;">
+            <div style="display:flex;gap:4px;"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUT AREA OR LOCK NOTICE -->
+    {% if not room.is_resolved %}
+    <div class="chat-input-row">
+      <textarea id="msgInput" 
+        placeholder="{% if is_expert %}Type your expert advice here... (Enter to send){% else %}Type your message or follow-up question... (Enter to send){% endif %}" 
+        rows="1"></textarea>
+      <button class="send-btn {% if is_expert %}expert-send{% else %}farmer-send{% endif %}" 
+              id="sendBtn" onclick="sendMessage()">
+        {% if is_expert %}📤 Reply as Expert{% else %}Send ➤{% endif %}
+      </button>
+    </div>
+    {% else %}
+    <div class="chat-locked">
+      <strong>✅ This chat has been resolved.</strong> The expert has provided their answer.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- INFO STRIP -->
+  <div class="chat-info-strip">
+    <span>🔒 This is a private 1-to-1 consultation</span>
+    <span>·</span>
+    <span>📞 Farmer: {{ room.farmer_name }}{% if room.farmer_phone %} · {{ room.farmer_phone }}{% endif %}</span>
+    <span>·</span>
+    {% if is_expert %}
+    <span>💡 You are responding as a verified agricultural expert</span>
+    {% else %}
+    <span>💡 Expert: <a href="{% url 'chat_new' %}" style="color:#22c55e;">Log in as expert</a> to see expert view</span>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ROOM_ID    = {{ room.id }};
+const IS_EXPERT  = {{ is_expert|lower }};
+const SENDER     = IS_EXPERT ? 'expert' : 'farmer';
+const SNAME      = IS_EXPERT 
+    ? '{{ sender_name|escapejs }}' 
+    : '{{ room.farmer_name|escapejs }}';
+let lastMsgId = {% if msgs %}{{ msgs.last.id|default:0 }}{% else %}0{% endif %};
+
+function scrollBottom(){
+    const c = document.getElementById('chatMessages');
+    c.scrollTop = c.scrollHeight;
+}
+
+async function sendMessage(){
+    const inp  = document.getElementById('msgInput');
+    const btn  = document.getElementById('sendBtn');
+    const text = inp.value.trim();
+    if(!text) return;
+    btn.disabled = true;
+    inp.value = '';
+    inp.style.height = 'auto';
+
+    try{
+        const r = await fetch('/chat/'+ROOM_ID+'/send/', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ message: text, sender: SENDER, sender_name: SNAME })
+        });
+        const msg = await r.json();
+        if(msg.id){ appendMsg(msg); lastMsgId = msg.id; }
+    }catch(e){ console.error(e); }
+    btn.disabled = false;
+    inp.focus();
+}
+
+function appendMsg(msg){
+    const wrap = document.getElementById('chatMessages');
+    const typing = document.getElementById('typingIndicator');
+    const div = document.createElement('div');
+    div.className = 'msg ' + (msg.sender==='farmer' ? 'farmer-msg' : 'expert-msg');
+    div.dataset.id = msg.id;
+    const expertTag = msg.sender==='expert' ? '<div class="expert-tag">✅ Verified Expert</div>' : '';
+    const verifiedClass = msg.sender==='expert' ? 'verified' : '';
+    div.innerHTML = `
+        <div class="msg-avatar">${msg.sender==='farmer'?'🧑':'👨‍💼'}</div>
+        <div class="msg-body">
+            ${expertTag}
+            <div class="msg-meta">${msg.sender_name} · ${msg.time}</div>
+            <div class="msg-bubble ${verifiedClass}">${escHtml(msg.message)}</div>
+        </div>`;
+    wrap.insertBefore(div, typing);
+    scrollBottom();
+}
+
+function escHtml(t){
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Poll for new messages every 3s
+async function poll(){
+    try{
+        const r = await fetch('/chat/'+ROOM_ID+'/messages/?after='+lastMsgId);
+        const d = await r.json();
+        for(const m of d.messages){
+            // Only show messages from the OTHER side (avoid duplicating own messages)
+            if(m.sender !== SENDER){
+                appendMsg(m);
+                lastMsgId = m.id;
+            }
+        }
+    }catch(e){}
+    setTimeout(poll, 3000);
+}
+
+// Auto-resize textarea
+document.getElementById('msgInput')?.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+});
+document.getElementById('msgInput')?.addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 130) + 'px';
+});
+
+function getCookie(name){
+    const v = document.cookie.split(';').find(c=>c.trim().startsWith(name+'='));
+    return v ? decodeURIComponent(v.split('=')[1]) : '';
+}
+
+scrollBottom();
+setTimeout(poll, 3000);
+</script>
+{% endblock %}

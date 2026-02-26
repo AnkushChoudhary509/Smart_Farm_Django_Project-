@@ -1,0 +1,62 @@
+{% extends 'farming/base.html' %}
+{% block title %}Chat Sessions — Smart Farming{% endblock %}
+{% block extra_css %}
+<style>
+.cl-wrap{max-width:800px;margin:2rem auto;padding:0 1rem;}
+.cl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;}
+.cl-header h2{font-family:'Playfair Display',serif;color:#1a3a2a;}
+.chat-item{background:white;border-radius:14px;padding:1.25rem 1.5rem;box-shadow:0 2px 12px rgba(0,0,0,.06);border-left:4px solid #22c55e;margin-bottom:.75rem;display:flex;align-items:center;gap:1rem;cursor:pointer;transition:all .2s;text-decoration:none;}
+.chat-item:hover{transform:translateX(4px);box-shadow:0 4px 20px rgba(0,0,0,.1);}
+.chat-item.resolved{border-left-color:#94a3b8;opacity:.7;}
+.ci-avatar{font-size:2rem;flex-shrink:0;}
+.ci-name{font-weight:700;color:#1a3a2a;margin-bottom:.2rem;}
+.ci-preview{font-size:.83rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px;}
+.ci-meta{margin-left:auto;text-align:right;flex-shrink:0;}
+.ci-time{font-size:.75rem;color:#94a3b8;}
+.ci-badge{background:#dcfce7;color:#14532d;padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:700;}
+.ci-badge.resolved-badge{background:#f1f5f9;color:#64748b;}
+.empty-state{text-align:center;padding:4rem 2rem;color:#94a3b8;}
+.empty-state p{font-size:.9rem;margin-top:.5rem;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header"><h1>💬 Expert Chat Sessions</h1><p>1-to-1 conversations between farmers and agricultural experts</p></div>
+<div class="cl-wrap">
+  <div class="cl-header">
+    <h2>All Chat Sessions ({{ rooms|length }})</h2>
+    <a href="{% url 'chat_new' %}" class="btn btn-primary">+ New Chat</a>
+  </div>
+
+  {% if rooms %}
+    {% for room in rooms %}
+    <a href="{% url 'chat_room' room.id %}{% if request.GET.expert %}?expert=1{% endif %}" class="chat-item {% if room.is_resolved %}resolved{% endif %}">
+      <div class="ci-avatar">🧑‍🌾</div>
+      <div style="flex:1;min-width:0;">
+        <div class="ci-name">{{ room.farmer_name }}{% if room.farmer_phone %} · {{ room.farmer_phone }}{% endif %}</div>
+        <div class="ci-preview">
+          {% if room.last_msg %}{{ room.last_msg.message|truncatechars:80 }}{% else %}No messages yet{% endif %}
+        </div>
+      </div>
+      <div class="ci-meta">
+        <div class="ci-time">{{ room.created_at|date:"d M, g:i A" }}</div>
+        <div class="ci-badge {% if room.is_resolved %}resolved-badge{% endif %}">
+          {% if room.is_resolved %}✅ Resolved{% else %}{{ room.unread }} msgs{% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:4rem">💬</div>
+    <p>No chat sessions yet. Farmers can start a chat from the community page.</p>
+    <a href="{% url 'chat_new' %}" class="btn btn-primary" style="display:inline-block;margin-top:1rem;">Start First Chat</a>
+  </div>
+  {% endif %}
+
+  <div style="text-align:center;margin-top:2rem;">
+    <a href="{% url 'chat_list' %}?expert=1" style="color:#64748b;font-size:.82rem;">👨‍💼 Switch to Expert View</a>
+    &nbsp;·&nbsp;
+    <a href="{% url 'expert_panel' %}" style="color:#64748b;font-size:.82rem;">🏛️ Expert Panel</a>
+  </div>
+</div>
+{% endblock %}
